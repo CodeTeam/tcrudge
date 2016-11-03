@@ -90,6 +90,28 @@ class BaseHandler(web.RequestHandler):
             raise web.HTTPError(400, reason=self.get_response(
                 errors=[{'code': '', 'message': 'Validation failed', 'detail': str(e)}]))
         return _data
+    
+    async def bad_permissions(self):
+        """
+        return answer an access denied
+        """
+        raise HTTPError(
+            400,
+            reason=self.get_response(errors=[{'code': '', 'message': 'Permission denied'}])
+        )
+
+    async def is_auth(self):
+        """
+        validate user authorized
+        """
+        # await self.bad_permissions()
+        return True
+    
+    async def get_roles(self):
+        """
+        get roles
+        """
+        return []
 
 
 class ApiHandler(BaseHandler, metaclass=ABCMeta):

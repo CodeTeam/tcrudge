@@ -1,0 +1,18 @@
+version: "2"
+services:
+    tcrudge:
+        build: .
+        links:
+            - pg
+        volumes: 
+            - .:/usr/src/app
+        command: python -m http.server 8000
+        depends_on: 
+            - pg
+    pg:
+        image: postgres
+        expose:
+            - "5432"
+        environment:
+            - POSTGRES_PASSWORD=dbpass
+            - POSTGRES_USER=user

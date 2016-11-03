@@ -373,7 +373,7 @@ class ApiListHandler(ApiHandler):
         """
         data = self.validate(self.request.body, self.post_schema_input)
         try:
-            item = await self.model_cls._create(self.application.objects, data)
+            item = await self.model_cls._create(self.application, data)
         except AttributeError:
             # We can only create item if model implements _create() method
             raise web.HTTPError(405,
@@ -446,7 +446,7 @@ class ApiItemHandler(ApiHandler):
 
         data = self.validate(self.request.body, self.put_schema_input)
         try:
-            item = await item._update(self.application.objects, data)
+            item = await item._update(self.application, data)
         except AttributeError:
             # We can only update item if model implements _update() method
             raise web.HTTPError(405,
@@ -467,7 +467,7 @@ class ApiItemHandler(ApiHandler):
         item = await self.get_item(item_id)
         try:
             # We can only delete item if model implements _delete() method
-            await item._delete(self.application.objects)
+            await item._delete(self.application)
         except AttributeError:
             raise web.HTTPError(405,
                                 reason=self.get_response(errors=[{'code': '', 'message': 'Method not allowed'}]))

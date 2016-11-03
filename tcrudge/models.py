@@ -4,23 +4,23 @@ import peewee
 
 
 class BaseModel(peewee.Model):
-    async def _update(self, manager, data):
+    async def _update(self, app, data):
         """
         By default set all given attributes
         """
         for k, v in data.items():
             setattr(self, k, v)
-        await manager.update(self)
+        await app.objects.update(self)
         return self
 
     @classmethod
-    async def _create(cls, manager, data):
+    async def _create(cls, app, data):
         """
         By default create instance with all given attributes
         """
-        return await manager.create(cls, **data)
+        return await app.objects.create(cls, **data)
 
-    async def _delete(self, manager):
+    async def _delete(self, app):
         """
         By default do not allow to delete model
         """

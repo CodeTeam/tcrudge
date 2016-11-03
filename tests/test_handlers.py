@@ -42,8 +42,8 @@ class ApiTestModel(BaseModel):
     class Meta:
         database = db
 
-    async def _delete(self, manager):
-        await manager.delete(self)
+    async def _delete(self, app):
+        await app.objects.delete(self)
 
 
 class ApiTestModelFK(BaseModel):

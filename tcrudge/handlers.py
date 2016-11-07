@@ -95,7 +95,7 @@ class BaseHandler(web.RequestHandler):
         """
         return answer an access denied
         """
-        raise HTTPError(
+        raise web.HTTPError(
             400,
             reason=self.get_response(errors=[{'code': '', 'message': 'Permission denied'}])
         )

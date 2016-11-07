@@ -148,6 +148,27 @@ def test_data(async_db):
     return res
 
 
+def test_generate_schema():
+    """
+    Helper fixture to create test data
+    """
+    schema = ApiTestModel.to_schema()
+    assert {
+        'additionalProperties': False, 'properties': 
+        {'tf_text': {'type': 'string'}, 'tf_integer': {'type': 'integer'}, 'tf_datetime': {'type': 'string'}, 
+        'tf_boolean': {'type': 'boolean'}, 'id': {'type': 'integer'}}, 'type': 'object', 
+        'required': ['id', 'tf_boolean', 'tf_datetime', 'tf_text']
+    } == schema
+
+    schema1 = ApiTestModel.to_schema(excluded=['id'])
+    assert {
+        'additionalProperties': False, 'properties': 
+        {'tf_text': {'type': 'string'}, 'tf_integer': {'type': 'integer'}, 'tf_datetime': {'type': 'string'}, 
+        'tf_boolean': {'type': 'boolean'}}, 'type': 'object', 
+        'required': ['tf_boolean', 'tf_datetime', 'tf_text']
+    } == schema1
+
+
 @pytest.mark.gen_test
 async def test_perm_roles_decorator(http_client, base_url,app_base_handlers, monkeypatch):
     with pytest.raises(HTTPError) as e:
@@ -201,7 +222,11 @@ async def test_base_api_list_head(http_client, base_url):
                                                 ('order_by=tf_text,-tf_integer,', 3),
                                                 ('tf_boolean=0', 1),
                                                 ])
-async def test_base_api_list_filter(http_client, base_url, url_param, cnt):
+async def test_base_api_list_filter(http_client, base_url, url_param, cnt, monkeypatch):
+    monkeypatch.setattr(ApiListTestHandler, 'get_schema_input',
+                        {
+
+                        })
     res = await http_client.fetch(base_url + '/test/api_test_model/?%s' % url_param)
 
     assert res.code == 200
@@ -275,10 +300,26 @@ async def test_base_api_list_force_total_query(http_client, base_url):
 @pytest.mark.usefixtures('app_base_handlers')
 @pytest.mark.parametrize('url_param', [('tf_bad_field=Some_data',),
                                        ('tf_integer=ABC',),
-                                       ('order_by=some_bad_field',),
                                        ])
 @pytest.mark.parametrize('request_type', ['GET', 'HEAD'])
 async def test_base_api_list_filter_bad_request(http_client, base_url, url_param, request_type):
+    with pytest.raises(HTTPError) as e:
+        await http_client.fetch(base_url + '/test/api_test_model/?%s' % url_param, method=request_type)
+    assert e.value.code == 400
+    data = json.loads(e.value.message)
+    assert data['result'] is None
+    assert not data['success']
+    assert len(data['errors']) == 1
+    assert data['errors'][0]['message'] == 'Validation failed'
+
+
+@pytest.mark.gen_test
+@pytest.mark.usefixtures('app_base_handlers')
+@pytest.mark.parametrize('url_param', [
+                                       ('order_by=some_bad_field',),
+                                       ])
+@pytest.mark.parametrize('request_type', ['GET', 'HEAD'])
+async def test_base_api_list_filter_bad_request1(http_client, base_url, url_param, request_type):
     with pytest.raises(HTTPError) as e:
         await http_client.fetch(base_url + '/test/api_test_model/?%s' % url_param, method=request_type)
     assert e.value.code == 400

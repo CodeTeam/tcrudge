@@ -182,24 +182,9 @@ class ApiListHandler(ApiHandler):
             "type" : "object",
             "additionalProperties": False,
             "properties" : {
-                "total" : {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "number" }
-                    ]
-                },
-                "limit" : {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "number" }
-                    ]
-                },
-                "offset" : {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "number" }
-                    ]
-                },
+                "total" : { "type": "string" },
+                "limit" : { "type": "string" },
+                "offset" : { "type": "string" },
                 "order_by" : {"type" : "string"},
             },
         }

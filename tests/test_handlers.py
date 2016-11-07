@@ -319,7 +319,7 @@ async def test_base_api_list_filter_bad_request(http_client, base_url, url_param
                                        ('order_by=some_bad_field',),
                                        ])
 @pytest.mark.parametrize('request_type', ['GET', 'HEAD'])
-async def test_base_api_list_filter_bad_request(http_client, base_url, url_param, request_type):
+async def test_base_api_list_filter_bad_request1(http_client, base_url, url_param, request_type):
     with pytest.raises(HTTPError) as e:
         await http_client.fetch(base_url + '/test/api_test_model/?%s' % url_param, method=request_type)
     assert e.value.code == 400

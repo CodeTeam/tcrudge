@@ -135,14 +135,6 @@ class ApiHandler(BaseHandler, metaclass=ABCMeta):
         pass
 
     @property
-    def get_schema_input(self):
-        """
-        JSON Schema to validate GET Url parameters
-        :return: dict
-        """
-        return {}
-
-    @property
     def get_schema_output(self):  # pragma: no cover
         return {}
 
@@ -179,6 +171,38 @@ class ApiListHandler(ApiHandler):
         self.total = False
         # Prefetch queries
         self.prefetch_queries = []
+    
+    @property
+    def get_schema_input(self):
+        """
+        JSON Schema to validate GET Url parameters
+        :return: dict
+        """
+        return {
+            "type" : "object",
+            "additionalProperties": False,
+            "properties" : {
+                "total" : {
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "number" }
+                    ]
+                },
+                "limit" : {
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "number" }
+                    ]
+                },
+                "offset" : {
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "number" }
+                    ]
+                },
+                "order_by" : {"type" : "string"},
+            },
+        }
 
     @property
     def post_schema_input(self):
@@ -190,7 +214,7 @@ class ApiListHandler(ApiHandler):
 
     @property
     def post_schema_output(self):  # pragma: no cover
-        return {}
+        return self.model_cls.to_schema(excluded=['id'])
 
     @property
     def default_filter(self):
@@ -413,12 +437,24 @@ class ApiItemHandler(ApiHandler):
     """
 
     @property
+    def get_schema_input(self):
+        """
+        JSON Schema to validate DELETE request body
+        :return:
+        """
+        return {
+            "type" : "object",
+            "additionalProperties": False,
+            "properties" : {}
+        }
+
+    @property
     def put_schema_input(self):
         """
         JSON Schema to validate PUT request body
         :return:
         """
-        return {}
+        return self.model_cls.to_schema(excluded=['id'])
 
     @property
     def delete_schema_input(self):
@@ -426,7 +462,11 @@ class ApiItemHandler(ApiHandler):
         JSON Schema to validate DELETE request body
         :return:
         """
-        return {}
+        return {
+            "type" : "object",
+            "additionalProperties": False,
+            "properties" : {}
+        }
 
     @property
     def put_schema_output(self):  # pragma: no cover

@@ -29,6 +29,7 @@ class BaseModel(peewee.Model):
     @classmethod
     def to_schema(cls, excluded=[]):
         schema = genson.Schema.create_default_schema()
+        excluded += getattr(cls._meta, "excluded", [])
         for field, type_field in cls._meta.fields.items():
             if field not in excluded:
                 schema.add_object(

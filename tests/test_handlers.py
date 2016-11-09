@@ -42,6 +42,7 @@ class ApiTestModel(BaseModel):
 
     class Meta:
         database = db
+        excluded = ['tf_boolean']
 
     async def _delete(self, app):
         await app.objects.delete(self)
@@ -156,16 +157,16 @@ def test_generate_schema():
     assert {
         'additionalProperties': False, 'properties': 
         {'tf_text': {'type': 'string'}, 'tf_integer': {'type': 'integer'}, 'tf_datetime': {'type': 'string'}, 
-        'tf_boolean': {'type': 'boolean'}, 'id': {'type': 'integer'}}, 'type': 'object', 
-        'required': ['id', 'tf_boolean', 'tf_datetime', 'tf_text']
+         'id': {'type': 'integer'}}, 'type': 'object', 
+        'required': ['id', 'tf_datetime', 'tf_text']
     } == schema
 
     schema1 = ApiTestModel.to_schema(excluded=['id'])
     assert {
         'additionalProperties': False, 'properties': 
         {'tf_text': {'type': 'string'}, 'tf_integer': {'type': 'integer'}, 'tf_datetime': {'type': 'string'}, 
-        'tf_boolean': {'type': 'boolean'}}, 'type': 'object', 
-        'required': ['tf_boolean', 'tf_datetime', 'tf_text']
+        }, 'type': 'object', 
+        'required': [ 'tf_datetime', 'tf_text']
     } == schema1
 
 
@@ -408,7 +409,7 @@ async def test_base_api_item_get(http_client, base_url, test_data):
 @pytest.mark.gen_test
 @pytest.mark.usefixtures('clean_table')
 @pytest.mark.parametrize('clean_table', [(ApiTestModel,)], indirect=True)
-async def test_base_api_item_put(http_client, base_url, app_base_handlers, test_data):
+async def test_base_api_item_put(http_client, base_url, app_base_handlers, test_data, monkeypatch):
     # Update data
     upd_data = {
         'tf_text': 'Data changed',
@@ -416,6 +417,7 @@ async def test_base_api_item_put(http_client, base_url, app_base_handlers, test_
         'tf_datetime': datetime.datetime(2015, 5, 5, 11),
         'tf_boolean': False
     }
+    monkeypatch.setattr(ApiItemHandler, 'put_schema_input', {})
     resp = await http_client.fetch(base_url + '/test/api_test_model/%s' % test_data[0].id, method='PUT',
                                    body=json.dumps(upd_data, default=json_serial).encode())
     assert resp.code == 200
@@ -492,6 +494,7 @@ async def test_base_api_list_post_405(http_client, base_url, monkeypatch):
 async def test_base_api_item_put_405(http_client, base_url, test_data, monkeypatch):
     # Remove put from this CRUD
     monkeypatch.delattr(BaseModel, '_update')
+    monkeypatch.setattr(ApiItemHandler, 'put_schema_input', {})
     # Update data
     upd_data = {
         'tf_text': 'Data changed',

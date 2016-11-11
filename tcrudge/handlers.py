@@ -331,19 +331,8 @@ class ApiListHandler(ApiHandler):
                 # Filtration. All arguments passed with AND condition (WHERE <...> AND <...> etc)
                 qs = self.__qs_filter(qs, k, v[0])
         return qs
-
-    async def get(self):
-        """
-        Handle GET request
-        List items with given query parameters
-        """
-        self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()}, self.get_schema_input)
-        try:
-            qs = self.get_queryset()
-        except AttributeError:
-            # Wrong field name in filter or order_by
-            raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Bad query arguments'}]))
+    
+    async def _get_items(self, qs):
         pagination = {'offset': self.offset}
         try:
             if self.total:
@@ -370,6 +359,22 @@ class ApiListHandler(ApiHandler):
                                 reason=self.get_response(errors=[{'code': '', 'message': 'Bad query arguments'}]))
         # Set number of fetched items
         pagination['limit'] = len(items)
+        
+        return items, pagination
+
+    async def get(self):
+        """
+        Handle GET request
+        List items with given query parameters
+        """
+        self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()}, self.get_schema_input)
+        try:
+            qs = self.get_queryset()
+        except AttributeError:
+            # Wrong field name in filter or order_by
+            raise web.HTTPError(400,
+                                reason=self.get_response(errors=[{'code': '', 'message': 'Bad query arguments'}]))
+        items, pagination = self._get_items(qs)
         result = []
         for m in items:
             result.append(await self.serialize(m))

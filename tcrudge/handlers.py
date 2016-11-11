@@ -409,7 +409,7 @@ class ApiListHandler(ApiHandler):
             # We can only create item if model implements _create() method
             raise web.HTTPError(405,
                                 reason=self.get_response(errors=[{'code': '', 'message': 'Method not allowed'}]))
-        except peewee.IntegrityError:
+        except (peewee.IntegrityError, peewee.DataError):
             raise web.HTTPError(400,
                                 reason=self.get_response(errors=[{'code': '', 'message': 'Invalid parameters'}]))
         self.response(result=await self.serialize(item))
@@ -498,7 +498,7 @@ class ApiItemHandler(ApiHandler):
             # We can only update item if model implements _update() method
             raise web.HTTPError(405,
                                 reason=self.get_response(errors=[{'code': '', 'message': 'Method not allowed'}]))
-        except peewee.IntegrityError:
+        except (peewee.IntegrityError, peewee.DataError):
             raise web.HTTPError(400,
                                 reason=self.get_response(errors=[{'code': '', 'message': 'Invalid parameters'}]))
 

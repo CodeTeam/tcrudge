@@ -38,6 +38,11 @@ class BaseModel(peewee.Model):
                     }
                 )
                 if not type_field.null:
+                    schema.add_object(
+                        {
+                            field: None
+                        }
+                    )
                     schema.add_schema(
                         {
                             "required": [field]

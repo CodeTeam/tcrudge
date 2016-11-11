@@ -374,7 +374,7 @@ class ApiListHandler(ApiHandler):
             # Wrong field name in filter or order_by
             raise web.HTTPError(400,
                                 reason=self.get_response(errors=[{'code': '', 'message': 'Bad query arguments'}]))
-        items, pagination = self._get_items(qs)
+        items, pagination = await self._get_items(qs)
         result = []
         for m in items:
             result.append(await self.serialize(m))

@@ -39,6 +39,7 @@ class ApiTestModel(BaseModel):
     tf_integer = peewee.IntegerField(null=True)
     tf_datetime = peewee.DateTimeField(default=datetime.datetime.now)
     tf_boolean = peewee.BooleanField()
+    tf_decimal = peewee.FloatField(null=True)
 
     class Meta:
         database = db
@@ -154,20 +155,27 @@ def test_generate_schema():
     Helper fixture to create test data
     """
     schema = ApiTestModel.to_schema()
+    print(schema)
     assert {
-        'additionalProperties': False, 'properties': 
-        {'tf_text': {'type': 'string'}, 'tf_integer': {'type': 'integer'}, 'tf_datetime': {'type': 'string'}, 
-         'id': {'type': 'integer'}}, 'type': 'object', 
-        'required': ['id', 'tf_datetime', 'tf_text']
-    } == schema
+        'type': 'object', 'properties': 
+            {
+                'tf_integer': {'type': 'string', 'pattern': '^[+-]?[0-9]+$'}, 
+                'id': {'anyOf': [{'type': 'integer'}, {'type': 'null'}]}, 
+                'tf_decimal': {'anyOf': [{'type': 'number'}, {'type': 'string', 'pattern': '^[+-]?([0-9]*[.])?[0-9]+$'}]}, 
+                'tf_datetime': {'anyOf': [{'type': 'string'}, {'type': 'null'}]}, 
+                'tf_text': {'anyOf': [{'type': 'string'}, {'type': 'null'}]}
+            }, 
+        'required': ['id', 'tf_datetime', 'tf_text'], 'additionalProperties': False} == schema
 
     schema1 = ApiTestModel.to_schema(excluded=['id'])
     assert {
-        'additionalProperties': False, 'properties': 
-        {'tf_text': {'type': 'string'}, 'tf_integer': {'type': 'integer'}, 'tf_datetime': {'type': 'string'}, 
-        }, 'type': 'object', 
-        'required': [ 'tf_datetime', 'tf_text']
-    } == schema1
+        'type': 'object', 'properties': {
+            'tf_integer': {'type': 'string', 'pattern': '^[+-]?[0-9]+$'},  
+            'tf_decimal': {'anyOf': [{'type': 'number'}, {'type': 'string', 'pattern': '^[+-]?([0-9]*[.])?[0-9]+$'}]}, 
+            'tf_datetime': {'anyOf': [{'type': 'string'}, {'type': 'null'}]},
+            'tf_text': {'anyOf': [{'type': 'string'}, {'type': 'null'}]}
+        }, 
+        'required': ['tf_datetime', 'tf_text'], 'additionalProperties': False} == schema1
 
 
 @pytest.mark.gen_test

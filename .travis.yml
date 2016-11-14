@@ -15,6 +15,7 @@ addons:
 
 env:
   global:
+    - CODECLIMATE_REPO_TOKEN=none
     - PGPORT=5433
     - PGHOST=localhost
     - PIP_DISABLE_PIP_VERSION_CHECK=on
@@ -23,12 +24,19 @@ env:
 before_script:
   - sudo cp /etc/postgresql/9.4/main/pg_hba.conf /etc/postgresql/9.5/main/pg_hba.conf
   - sudo /etc/init.d/postgresql restart
-  
+  - pip install codeclimate-test-reporter
+
+after_script:
+  - coveralls 
+
 python:
   - "3.5"
   - "3.5-dev"
   - "3.6-dev"
   - "nightly"
 
-install: "pip install -r requirements.txt"
+install: 
+  - "pip install -r requirements.txt"
+  - "pip install coveralls"
+
 script: pytest

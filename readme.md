@@ -34,7 +34,7 @@ For detailed example see tests (also, tests are available in Docker container wi
 
 ## Application
 
-```
+```python
 app_handlers = [
     ('^/api/v1/companies/', CompanyListHandler),
     ('^/api/v1/companies/([^/]+)/', CompanyDetailHandler)
@@ -63,7 +63,7 @@ def runserver():
 
 > DB table must exist; Fields in table must correspond to model fields
 
-```
+```python
 class Company(CustomBaseModel):
     company_inn = peewee.TextField()
     active = peewee.BooleanField()
@@ -76,7 +76,7 @@ class Company(CustomBaseModel):
 
 ## Handlers
 
-```
+```python
 class CompanyDetailHandler(ApiItemHandler):
     model_cls = Company
 

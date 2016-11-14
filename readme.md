@@ -1,4 +1,5 @@
 TCrudge - simple async CRUDL based on Tornado and Peewee ORM (Peewee Async)
+[![Build Status](https://travis-ci.org/CodeTeam/tcrudge.svg?branch=master)](https://travis-ci.org/CodeTeam/tcrudge)
 
 
 # What is it?

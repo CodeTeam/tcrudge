@@ -14,10 +14,11 @@ from tornado.web import Application
 IOLoop.configure('tornado.platform.asyncio.AsyncIOMainLoop')
 
 db_param = parse(os.environ.get('DATABASE_URL'))
-TEST_DB = db_param['database']
-TEST_USER = db_param['user']
-TEST_PWD = db_param['password']
-TEST_HOST = db_param['host']
+TEST_DB = db_param.get('database','testdb')
+TEST_USER = db_param.get('user','postgres')
+TEST_PWD = db_param.get('password','')
+TEST_HOST = db_param.get('host','localhost')
+TEST_PORT = db_param.get('port',5432)
 
 db = peewee_async.PooledPostgresqlDatabase(**db_param)
 db.allow_sync = False

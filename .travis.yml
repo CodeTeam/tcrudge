@@ -1,18 +1,30 @@
+sudo: required
 language: python
 
 services:
   - postgresql
 
 addons:
+  apt:
+    sources:
+    - precise-pgdg-9.5
+    packages:
+    - postgresql-9.5
+    - postgresql-contrib-9.5
   postgresql: "9.5"
 
 env:
   global:
+    - PGPORT=5433
+    - PGHOST=localhost
     - PIP_DISABLE_PIP_VERSION_CHECK=on
-    - DATABASE_URL=postgres://localhost/travis_ci_test
+    - DATABASE_URL=postgres://postgres@localhost:5433/travis_ci_test
 
 before_script:
-  - psql -c 'create database travis_ci_test;' -U postgres
+  - sudo cp /etc/postgresql/9.4/main/pg_hba.conf /etc/postgresql/9.5/main/pg_hba.conf
+  - sudo /etc/init.d/postgresql restart
+  - psql -U postgres -c 'create database "travis_ci_test";'
+  - psql -U postgres travis-db-test -c 'create extension "uuid-ossp";'
   
 python:
   - "3.5"

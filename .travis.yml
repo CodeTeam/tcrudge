@@ -1,0 +1,24 @@
+language: python
+
+services:
+  - postgresql
+
+addons:
+  postgresql: "9.5"
+
+env:
+  global:
+    - PIP_DISABLE_PIP_VERSION_CHECK=on
+    - DATABASE_URL=postgres://localhost/travis_ci_test
+
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres
+  
+python:
+  - "3.5"
+  - "3.5-dev"
+  - "3.6-dev"
+  - "nightly"
+
+install: "pip install -r requirements.txt"
+script: pytest

@@ -1,3 +1,12 @@
+"""
+Module contains basic handlers:
+    BaseHandler
+    ApiHandler
+    ApiListHandler
+    ApiItemHandler
+
+"""
+
 import json
 import operator
 import traceback
@@ -90,7 +99,7 @@ class BaseHandler(web.RequestHandler):
             raise web.HTTPError(400, reason=self.get_response(
                 errors=[{'code': '', 'message': 'Validation failed', 'detail': str(e)}]))
         return _data
-    
+
     async def bad_permissions(self):
         """
         return answer an access denied
@@ -117,7 +126,7 @@ class BaseHandler(web.RequestHandler):
 class ApiHandler(BaseHandler, metaclass=ABCMeta):
     """
     Base helper class for API functions
-    model_cls SHOULD be defined
+    model_cls MUST be defined
     """
 
     # Fields to be excluded by default from serialization
@@ -132,24 +141,41 @@ class ApiHandler(BaseHandler, metaclass=ABCMeta):
     @property
     @abstractmethod
     def model_cls(self):  # pragma: no cover
-        pass
+        """
+        Model class must be defined. Otherwise it'll crash a little later even
+        if nothing seems to be accessing a model class. If you think you don't
+        need a model class, consider the architecture, please. Maybe it doesn't
+        fit REST.
+        https://github.com/CodeTeam/tcrudge/issues/6
+        """
+        raise NotImplementedError('Model class must be defined.')
 
     @property
     def get_schema_output(self):  # pragma: no cover
+        """
+        Maybe you'd ask: "What's a get-schema?"
+        The answer is that we wanted to check input of every request method
+        in a homologous way. So we decided to describe any input and output
+        using JSON schema.
+        """
         return {}
 
-    async def serialize(self, m):
+    async def serialize(self, model):
         """
-        Method to serialize model
-        By default all fields are serialized by model_to_dict
+        Method to serialize a model.
+        By default all fields are serialized by model_to_dict.
+        The model can be any model you'll pass through this method.
         """
-        return model_to_dict(m, recurse=self.recurse, exclude=self.exclude_fields, max_depth=self.max_depth)
+        return model_to_dict(model,
+                             recurse=self.recurse,
+                             exclude=self.exclude_fields,
+                             max_depth=self.max_depth)
 
 
 class ApiListHandler(ApiHandler):
     """
-    Base List API Handler
-    Supports C, L from CRUDL
+    Base List API Handler.
+    Supports C, L from CRUDL.
     """
     # Pagination settings
     # Default amount of items to be listed (if no limit passed by request headers or querystring)

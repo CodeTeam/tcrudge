@@ -29,6 +29,13 @@ Describe models using Peewee ORM. Subclass ```tcrudge.ApiListHandler``` and ```t
 
 For detailed example see tests (also, tests are available in Docker container with py.test).
 
+You can run tests in docker container only.
+You'll need docker and docker-compose.
+1. Go to project root directory
+2. Run docker-compose up, it builts and runs containers.
+3. Go to tcrudge container bash: docker exec -ti tcrudge_tcrudge_1 bash
+4. Run: DATABASE_URL=postgresql://user:dbpass@pg/test pytest
+
 
 # Features?
 

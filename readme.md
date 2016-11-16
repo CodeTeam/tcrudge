@@ -12,10 +12,17 @@ Simple configurable framework to create CRUDL (Create, Read, Update, Delete, Lis
 # Why?
 Tornado is fast. Peewee is great. REST is wonderful.
 
+# Dependencies
+* Tornado (https://github.com/tornadoweb/tornado)
+* Peewee (https://github.com/coleifer/peewee)
+* Peewee-async (https://github.com/05bit/peewee-async)
+* Modified JSON schema generator by [Shalamov Maxim] (https://github.com/mvshalamov) (https://github.com/mvshalamov/GenSON)
 
 # Installation
-tcrudge is not distributed by pip (https://pypi.python.org/pypi). So use installation via GitHub.
-
+tcrudge is not distributed by pip (https://pypi.python.org/pypi). So use installation via GitHub:
+```
+pip install git+https://github.com/CodeTeam/tcrudge.git
+```
 
 # How to?
 Describe models using Peewee ORM. Subclass ```tcrudge.ApiListHandler``` and ```tcrudge.ApiItemHandler```. Connect handlers with models using model_cls handler attribute. Add urls to tornado.Application url dispatcher.
@@ -102,3 +109,4 @@ class CompanyListHandler(ApiListHandler):
 * [Borisov Sergey] (https://github.com/juntatalor)
 * [Shalamov Maxim] (https://github.com/mvshalamov)
 * [Nikolaev Alexander] (https://github.com/wokli)
+* [Krasavina Alina] (https://github.com/thaelathy)

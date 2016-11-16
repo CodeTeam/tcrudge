@@ -1,6 +1,6 @@
 def perm_roles(items):
     """
-    check roles from input list
+    Check roles from input list.
     """
     def wrap(f):
         async def func(self, *args, **kw):

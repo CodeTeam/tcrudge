@@ -14,11 +14,11 @@ from tornado.web import Application
 IOLoop.configure('tornado.platform.asyncio.AsyncIOMainLoop')
 
 db_param = parse(os.environ.get('DATABASE_URL'))
-TEST_DB = db_param.get('database','testdb')
-TEST_USER = db_param.get('user','postgres')
-TEST_PWD = db_param.get('password','')
-TEST_HOST = db_param.get('host','localhost')
-TEST_PORT = db_param.get('port',5432)
+TEST_DB = db_param.get('database', 'testdb')
+TEST_USER = db_param.get('user', 'postgres')
+TEST_PWD = db_param.get('password', '')
+TEST_HOST = db_param.get('host', 'localhost')
+TEST_PORT = db_param.get('port', 5432)
 
 db = peewee_async.PooledPostgresqlDatabase(**db_param)
 db.allow_sync = False
@@ -27,8 +27,8 @@ db.allow_sync = False
 @pytest.fixture(scope='session')
 def app(async_db):
     """
-    Application fixture
-    Required by pytest-tornado
+    Application fixture.
+    Required by pytest-tornado.
     """
     application = Application()
     application.objects = peewee_async.Manager(async_db)
@@ -38,9 +38,9 @@ def app(async_db):
 @pytest.fixture(scope='session', autouse=True)
 def async_db(request):
     """
-    Database fixture
-    Creates Postgresql test database and applies yoyo migrations
-    Drops database on teardown
+    Database fixture.
+    Creates Postgresql test database and applies yoyo migrations.
+    Drops database on teardown.
     """
     # Create database
     with psycopg2.connect(
@@ -70,8 +70,8 @@ def async_db(request):
 @pytest.fixture
 def clean_table(request, async_db):
     """
-    This fixture should be used only with
-    request.param set to iterable with subclasses of peewee.Model or single peewee.Model
+    This fixture should be used only with request.param set to iterable with
+    subclasses of peewee.Model or single peewee.Model.
     It clears all data in request.param table
     Usage:
     @pytest.mark.parametrize('clean_table', [(Log, Route)], indirect=True)

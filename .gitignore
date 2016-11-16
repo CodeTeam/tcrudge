@@ -1,16 +1,39 @@
+# OSX
+.DS_Store
+.AppleDouble
+.LSOverride
+
 # Byte-compiled / optimized / DLL files
-__pycache__/
 *.py[cod]
+__pycache__
+__pycache__/
 *$py.class
 
+# Pycharm
+.idea/
+
+# Installer logs
+pip-log.txt
+
+# Docs
+docs/build/
+docs/_build/
+
+# Virtualenv
+venv
+
+# Vagrant
+.vagrant/
+
+# Pytest
+.cache/
+
+# Unit test / coverage reports
+.coverage
+htmlcov/
 
 # Distribution / packaging
 .env/
 
-# Unit test / coverage reports
-.coverage
-
-.vagrant
-.idea
-.cache
-.DS_Store
+# Pypi
+.pypirc

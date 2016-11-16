@@ -15,7 +15,7 @@ __pycache__
 pip-log.txt
 
 # Docs
-docs/_build
+docs/build
 
 # Virtualenv
 venv

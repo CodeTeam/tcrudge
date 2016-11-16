@@ -6,6 +6,7 @@
 # Byte-compiled / optimized / DLL files
 *.py[cod]
 __pycache__
+__pycache__/
 *$py.class
 
 # Pycharm
@@ -15,7 +16,8 @@ __pycache__
 pip-log.txt
 
 # Docs
-docs/build
+docs/build/
+docs/_build/
 
 # Virtualenv
 venv

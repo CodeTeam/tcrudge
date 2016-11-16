@@ -6,7 +6,7 @@ import peewee
 class BaseModel(peewee.Model):
     async def _update(self, app, data):
         """
-        By default set all given attributes
+        By default method sets all given attributes.
         """
         for k, v in data.items():
             setattr(self, k, v)
@@ -16,18 +16,20 @@ class BaseModel(peewee.Model):
     @classmethod
     async def _create(cls, app, data):
         """
-        By default create instance with all given attributes
+        By default method creates instance with all given attributes.
         """
         return await app.objects.create(cls, **data)
 
     async def _delete(self, app):
         """
-        By default do not allow to delete model
+        By default model deletion is not allowed.
         """
         raise AttributeError
-    
+
     @classmethod
-    def to_schema(cls, excluded=[]):
+    def to_schema(cls, excluded=None):
+        if not excluded:
+            excluded = []
         schema = genson.Schema.create_default_schema()
         excluded += getattr(cls._meta, "excluded", [])
         for field, type_field in cls._meta.fields.items():

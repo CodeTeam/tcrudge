@@ -1,10 +1,5 @@
 """
-Module contains basic handlers:
-    BaseHandler
-    ApiHandler
-    ApiListHandler
-    ApiItemHandler
-
+Module contains basic handlers.
 """
 
 import json
@@ -25,32 +20,32 @@ from tcrudge.utils.validation import validate_integer
 
 class BaseHandler(web.RequestHandler):
     """
-    Base helper class
-    Provides basic handy reponses
+    Base helper class. Provides basic handy reponses.
+
+    To be used for customized handlers that don't fit REST API recommendations.
+
+    Functions to handle different response formats must receive two arguments:
+    - handler: subclass of tornado.web.RequestHandler;
+    - answer: dictionary with response data.
     """
 
-    # Functions to handle different response formats
-    # Should receive two arguments:
-    # - handler: subclass of tornado.web.RequestHandler
-    # - answer: dictionary with response data
     response_callbacks = {
         'application/json': response_json,
-        'application/x-msgpack': response_msgpack
+        'application/x-msgpack': response_msgpack,
     }
 
     def get_response(self, result=None, errors=None, **kwargs):
         """
         Method returns conventional formatted byte answer
-        :return:
         """
         _errors = errors or []
         # Set success flag
-        success = not bool(_errors)
+        success = not _errors
 
         answer = {
             'result': result,
             'errors': _errors,
-            'success': success
+            'success': success,
         }
 
         accept = self.request.headers.get('Accept', 'application/json')
@@ -60,12 +55,15 @@ class BaseHandler(web.RequestHandler):
 
     def response(self, result=None, errors=None, **kwargs):
         """
-        Method writes the response and finishes the request
+        Method writes the response and finishes the request.
         """
         self.write(self.get_response(result, errors, **kwargs))
         self.finish()
 
     def write_error(self, status_code, **kwargs):
+        """
+        Method gets traceback, writes it into response, finishes response.
+        """
         if self.settings.get("serve_traceback") and "exc_info" in kwargs:  # pragma: no cover
             # in debug mode, try to send a traceback
             self.set_header('Content-Type', 'text/plain')
@@ -80,7 +78,8 @@ class BaseHandler(web.RequestHandler):
         Method to validate parameters
         Raises HTTPError(400) with error info for invalid data
         :param data: bytes or dict
-        :param schema: dict, valid json schema (http://json-schema.org/latest/json-schema-validation.html)
+        :param schema: dict, valid json schema
+          (http://json-schema.org/latest/json-schema-validation.html)
         :return: None if data is not valid. Else dict(data)
         """
         try:
@@ -94,39 +93,39 @@ class BaseHandler(web.RequestHandler):
             # json.loads error
             raise web.HTTPError(400, reason=self.get_response(
                 errors=[{'code': '', 'message': 'Request body is not a valid json object'}]))
-        except exceptions.ValidationError as e:
+        except exceptions.ValidationError as exc:
             # data does not pass validation
             raise web.HTTPError(400, reason=self.get_response(
-                errors=[{'code': '', 'message': 'Validation failed', 'detail': str(e)}]))
+                errors=[{'code': '', 'message': 'Validation failed', 'detail': str(exc)}]))
         return _data
 
     async def bad_permissions(self):
         """
-        return answer an access denied
+        Returns answer of access denied.
         """
         raise web.HTTPError(
             401,
-            reason=self.get_response(errors=[{'code': '', 'message': 'Permission denied'}])
+            reason=self.get_response(errors=[{'code': '', 'message': 'Access denied'}])
         )
 
     async def is_auth(self):
         """
-        validate user authorized
+        Validate user authorized.
         """
         # await self.bad_permissions()
         return True
-    
+
     async def get_roles(self):
         """
-        get roles
+        Get roles.
         """
         return []
 
 
 class ApiHandler(BaseHandler, metaclass=ABCMeta):
     """
-    Base helper class for API functions
-    model_cls MUST be defined
+    Base helper class for API functions.
+    model_cls MUST be defined.
     """
 
     # Fields to be excluded by default from serialization
@@ -144,8 +143,8 @@ class ApiHandler(BaseHandler, metaclass=ABCMeta):
         """
         Model class must be defined. Otherwise it'll crash a little later even
         if nothing seems to be accessing a model class. If you think you don't
-        need a model class, consider the architecture, please. Maybe it doesn't
-        fit REST.
+        need a model class, consider the architecture. Maybe it doesn't
+        fit REST. In that case use BaseHandler.
         https://github.com/CodeTeam/tcrudge/issues/6
         """
         raise NotImplementedError('Model class must be defined.')
@@ -178,9 +177,11 @@ class ApiListHandler(ApiHandler):
     Supports C, L from CRUDL.
     """
     # Pagination settings
-    # Default amount of items to be listed (if no limit passed by request headers or querystring)
+    # Default amount of items to be listed (if no limit passed by request
+    # headers or querystring)
     default_limit = 50
-    # Maximum amount of items to be listed (if limit passed by request is large than this amount - it will be truncated)
+    # Maximum amount of items to be listed (if limit passed by request is
+    # greater than this amount - it will be truncated)
     max_limit = 100
 
     # Arguments that should not be passed to filter
@@ -197,7 +198,7 @@ class ApiListHandler(ApiHandler):
         self.total = False
         # Prefetch queries
         self.prefetch_queries = []
-    
+
     @property
     def get_schema_input(self):
         """
@@ -208,9 +209,9 @@ class ApiListHandler(ApiHandler):
             "type" : "object",
             "additionalProperties": False,
             "properties" : {
-                "total" : { "type": "string" },
-                "limit" : { "type": "string" },
-                "offset" : { "type": "string" },
+                "total" : {"type": "string"},
+                "limit" : {"type": "string"},
+                "offset" : {"type": "string"},
                 "order_by" : {"type" : "string"},
             },
         }
@@ -218,7 +219,7 @@ class ApiListHandler(ApiHandler):
     @property
     def post_schema_input(self):
         """
-        JSON Schema to validate POST request body
+        JSON Schema to validate POST request body.
         :return: dict
         """
         return {}
@@ -230,7 +231,7 @@ class ApiListHandler(ApiHandler):
     @property
     def default_filter(self):
         """
-        Default queryset WHERE clause. Used for list queries first
+        Default queryset WHERE clause. Used for list queries first.
         :return: dict
         """
         return {}
@@ -238,15 +239,13 @@ class ApiListHandler(ApiHandler):
     @property
     def default_order_by(self):
         """
-        Default queryset ORDER BY clause. Used for list queries first
-        :return:
+        Default queryset ORDER BY clause. Used for list queries first.
         """
         return ()
 
     def prepare(self):
         """
-        Method to get and validate offset and limit params for GET REST request
-        :return:
+        Method to get and validate offset and limit params for GET REST request.
         """
         # Headers are more significant when taking limit and offset
         if self.request.method == 'GET':
@@ -265,8 +264,9 @@ class ApiListHandler(ApiHandler):
     @classmethod
     def __qs_filter(cls, qs, flt, value, process_value=True):
         """
-        Set WHERE part of response
-        If required, Django-style filter is available via qs.filter() and peewee.DQ - this method provides joins
+        Set WHERE part of response.
+        If required, Django-style filter is available via qs.filter()
+        and peewee.DQ - this method provides joins.
         """
         neg = False
         if flt[0] in '-':
@@ -310,7 +310,7 @@ class ApiListHandler(ApiHandler):
     @classmethod
     def __qs_order_by(cls, qs, value, process_value=True):
         """
-        Set ORDER BY part of response
+        Set ORDER BY part of response.
         """
         # Empty parameters are skipped
         if process_value:
@@ -330,8 +330,8 @@ class ApiListHandler(ApiHandler):
 
     def get_queryset(self, paginate=True):
         """
-        Get queryset for model
-        Override to change logic
+        Get queryset for model.
+        Override this method to change logic.
         """
         # Set limit / offset parameters
         qs = self.model_cls.select()
@@ -385,13 +385,13 @@ class ApiListHandler(ApiHandler):
                                 reason=self.get_response(errors=[{'code': '', 'message': 'Bad query arguments'}]))
         # Set number of fetched items
         pagination['limit'] = len(items)
-        
+
         return items, pagination
 
     async def get(self):
         """
-        Handle GET request
-        List items with given query parameters
+        Handle GET request.
+        List items with given query parameters.
         """
         self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()}, self.get_schema_input)
         try:
@@ -408,8 +408,8 @@ class ApiListHandler(ApiHandler):
 
     async def head(self):
         """
-        Handle HEAD request
-        Fetch total amount of items and return them in header
+        Handle HEAD request.
+        Fetch total amount of items and return them in header.
         """
         self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()}, self.get_schema_input)
         try:
@@ -429,9 +429,9 @@ class ApiListHandler(ApiHandler):
 
     async def post(self):
         """
-        Handle POST request
-        Validate data and create new item
-        Returns it's id (PK)
+        Handle POST request.
+        Validate data and create new item.
+        Returns it's id (PK).
         """
         data = self.validate(self.request.body, self.post_schema_input)
         try:
@@ -448,15 +448,14 @@ class ApiListHandler(ApiHandler):
 
 class ApiItemHandler(ApiHandler):
     """
-    Base Item API Handler
-    Supports R, U, D from CRUDL
+    Base Item API Handler.
+    Supports R, U, D from CRUDL.
     """
 
     @property
     def get_schema_input(self):
         """
-        JSON Schema to validate DELETE request body
-        :return:
+        JSON Schema to validate DELETE request body.
         """
         return {
             "type" : "object",
@@ -467,16 +466,14 @@ class ApiItemHandler(ApiHandler):
     @property
     def put_schema_input(self):
         """
-        JSON Schema to validate PUT request body
-        :return:
+        JSON Schema to validate PUT request body.
         """
         return self.model_cls.to_schema(excluded=['id'])
 
     @property
     def delete_schema_input(self):
         """
-        JSON Schema to validate DELETE request body
-        :return:
+        JSON Schema to validate DELETE request body.
         """
         return {
             "type" : "object",
@@ -495,7 +492,7 @@ class ApiItemHandler(ApiHandler):
     async def get_item(self, item_id):
         """
         Fetch item from database by PK.
-        Raises HTTP 404 if no item found
+        Raises HTTP 404 if no item found.
         """
         try:
             return await self.application.objects.get(self.model_cls,
@@ -506,8 +503,8 @@ class ApiItemHandler(ApiHandler):
 
     async def get(self, item_id):
         """
-        Handle GET request
-        Returns serialized object
+        Handle GET request.
+        Returns serialized object.
         """
         self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()}, self.get_schema_input)
         item = await self.get_item(item_id)
@@ -516,9 +513,9 @@ class ApiItemHandler(ApiHandler):
 
     async def put(self, item_id):
         """
-        Handle PUT request
-        Validate data and update given item
-        Return HTTP 200 OK with result='success'
+        Handle PUT request.
+        Validate data and update given item.
+        Return HTTP 200 OK with result='success'.
         """
         item = await self.get_item(item_id)
 
@@ -526,7 +523,7 @@ class ApiItemHandler(ApiHandler):
         try:
             item = await item._update(self.application, data)
         except AttributeError:
-            # We can only update item if model implements _update() method
+            # We can only update item if model method _update() is implemented
             raise web.HTTPError(405,
                                 reason=self.get_response(errors=[{'code': '', 'message': 'Method not allowed'}]))
         except (peewee.IntegrityError, peewee.DataError):
@@ -537,14 +534,15 @@ class ApiItemHandler(ApiHandler):
 
     async def delete(self, item_id):
         """
-        Handle DELETE request
-        Model should define remove() method to handle delete logic. If method is not defined, HTTP 405 is raised.
+        Handle DELETE request.
+        Model should define remove() method to handle delete logic. If method
+        is not defined, HTTP 405 is raised.
         """
         # DELETE usually does not have body to validate.
         self.validate(self.request.body or {}, self.delete_schema_input)
         item = await self.get_item(item_id)
         try:
-            # We can only delete item if model implements _delete() method
+            # We can only delete item if model method _update() is implemented
             await item._delete(self.application)
         except AttributeError:
             raise web.HTTPError(405,

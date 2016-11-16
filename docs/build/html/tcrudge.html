@@ -1,0 +1,458 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tcrudge package &mdash; TCRUDge 0.6.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.6.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="TCRUDge 0.6.1 documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tcrudge-package">
+<h1>tcrudge package<a class="headerlink" href="#tcrudge-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tcrudge.utils.html">tcrudge.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tcrudge.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tcrudge.utils.html#module-tcrudge.utils.json">tcrudge.utils.json module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tcrudge.utils.html#module-tcrudge.utils.validation">tcrudge.utils.validation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tcrudge.utils.html#module-tcrudge.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-tcrudge.decorators">
+<span id="tcrudge-decorators-module"></span><h2>tcrudge.decorators module<a class="headerlink" href="#module-tcrudge.decorators" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tcrudge.decorators.perm_roles">
+<code class="descclassname">tcrudge.decorators.</code><code class="descname">perm_roles</code><span class="sig-paren">(</span><em>items</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.decorators.perm_roles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check roles from input list.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tcrudge.handlers">
+<span id="tcrudge-handlers-module"></span><h2>tcrudge.handlers module<a class="headerlink" href="#module-tcrudge.handlers" title="Permalink to this headline">¶</a></h2>
+<p>Module contains basic handlers.</p>
+<dl class="class">
+<dt id="tcrudge.handlers.ApiHandler">
+<em class="property">class </em><code class="descclassname">tcrudge.handlers.</code><code class="descname">ApiHandler</code><span class="sig-paren">(</span><em>application</em>, <em>request</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tcrudge.handlers.BaseHandler" title="tcrudge.handlers.BaseHandler"><code class="xref py py-class docutils literal"><span class="pre">tcrudge.handlers.BaseHandler</span></code></a></p>
+<p>Base helper class for API functions.
+model_cls MUST be defined.</p>
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiHandler.exclude_fields">
+<code class="descname">exclude_fields</code><em class="property"> = ()</em><a class="headerlink" href="#tcrudge.handlers.ApiHandler.exclude_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiHandler.get_schema_output">
+<code class="descname">get_schema_output</code><a class="headerlink" href="#tcrudge.handlers.ApiHandler.get_schema_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maybe you&#8217;d ask: &#8220;What&#8217;s a get-schema?&#8221;
+The answer is that we wanted to check input of every request method
+in a homologous way. So we decided to describe any input and output
+using JSON schema.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiHandler.max_depth">
+<code class="descname">max_depth</code><em class="property"> = None</em><a class="headerlink" href="#tcrudge.handlers.ApiHandler.max_depth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiHandler.model_cls">
+<code class="descname">model_cls</code><a class="headerlink" href="#tcrudge.handlers.ApiHandler.model_cls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model class must be defined. Otherwise it&#8217;ll crash a little later even
+if nothing seems to be accessing a model class. If you think you don&#8217;t
+need a model class, consider the architecture. Maybe it doesn&#8217;t
+fit REST. In that case use BaseHandler.
+<a class="reference external" href="https://github.com/CodeTeam/tcrudge/issues/6">https://github.com/CodeTeam/tcrudge/issues/6</a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiHandler.recurse">
+<code class="descname">recurse</code><em class="property"> = False</em><a class="headerlink" href="#tcrudge.handlers.ApiHandler.recurse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.ApiHandler.serialize">
+<code class="descname">serialize</code><span class="sig-paren">(</span><em>model</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiHandler.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to serialize a model.
+By default all fields are serialized by model_to_dict.
+The model can be any model you&#8217;ll pass through this method.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tcrudge.handlers.ApiItemHandler">
+<em class="property">class </em><code class="descclassname">tcrudge.handlers.</code><code class="descname">ApiItemHandler</code><span class="sig-paren">(</span><em>application</em>, <em>request</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiItemHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tcrudge.handlers.ApiHandler" title="tcrudge.handlers.ApiHandler"><code class="xref py py-class docutils literal"><span class="pre">tcrudge.handlers.ApiHandler</span></code></a></p>
+<p>Base Item API Handler.
+Supports R, U, D from CRUDL.</p>
+<dl class="method">
+<dt id="tcrudge.handlers.ApiItemHandler.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>item_id</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiItemHandler.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle DELETE request.
+Model should define remove() method to handle delete logic. If method
+is not defined, HTTP 405 is raised.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiItemHandler.delete_schema_input">
+<code class="descname">delete_schema_input</code><a class="headerlink" href="#tcrudge.handlers.ApiItemHandler.delete_schema_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>JSON Schema to validate DELETE request body.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiItemHandler.delete_schema_output">
+<code class="descname">delete_schema_output</code><a class="headerlink" href="#tcrudge.handlers.ApiItemHandler.delete_schema_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.ApiItemHandler.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>item_id</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiItemHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle GET request.
+Returns serialized object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.ApiItemHandler.get_item">
+<code class="descname">get_item</code><span class="sig-paren">(</span><em>item_id</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiItemHandler.get_item" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch item from database by PK.
+Raises HTTP 404 if no item found.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiItemHandler.get_schema_input">
+<code class="descname">get_schema_input</code><a class="headerlink" href="#tcrudge.handlers.ApiItemHandler.get_schema_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>JSON Schema to validate DELETE request body.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.ApiItemHandler.put">
+<code class="descname">put</code><span class="sig-paren">(</span><em>item_id</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiItemHandler.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle PUT request.
+Validate data and update given item.
+Return HTTP 200 OK with result=&#8217;success&#8217;.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiItemHandler.put_schema_input">
+<code class="descname">put_schema_input</code><a class="headerlink" href="#tcrudge.handlers.ApiItemHandler.put_schema_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>JSON Schema to validate PUT request body.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiItemHandler.put_schema_output">
+<code class="descname">put_schema_output</code><a class="headerlink" href="#tcrudge.handlers.ApiItemHandler.put_schema_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tcrudge.handlers.ApiListHandler">
+<em class="property">class </em><code class="descclassname">tcrudge.handlers.</code><code class="descname">ApiListHandler</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiListHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#tcrudge.handlers.ApiHandler" title="tcrudge.handlers.ApiHandler"><code class="xref py py-class docutils literal"><span class="pre">tcrudge.handlers.ApiHandler</span></code></a></p>
+<p>Base List API Handler.
+Supports C, L from CRUDL.</p>
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiListHandler.default_filter">
+<code class="descname">default_filter</code><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.default_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default queryset WHERE clause. Used for list queries first.
+:return: dict</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiListHandler.default_limit">
+<code class="descname">default_limit</code><em class="property"> = 50</em><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.default_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiListHandler.default_order_by">
+<code class="descname">default_order_by</code><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.default_order_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default queryset ORDER BY clause. Used for list queries first.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiListHandler.exclude_filter_args">
+<code class="descname">exclude_filter_args</code><em class="property"> = ['limit', 'offset', 'total']</em><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.exclude_filter_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.ApiListHandler.get">
+<code class="descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle GET request.
+List items with given query parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.ApiListHandler.get_queryset">
+<code class="descname">get_queryset</code><span class="sig-paren">(</span><em>paginate=True</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get queryset for model.
+Override this method to change logic.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiListHandler.get_schema_input">
+<code class="descname">get_schema_input</code><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.get_schema_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>JSON Schema to validate GET Url parameters
+:return: dict</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.ApiListHandler.head">
+<code class="descname">head</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.head" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle HEAD request.
+Fetch total amount of items and return them in header.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiListHandler.max_limit">
+<code class="descname">max_limit</code><em class="property"> = 100</em><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.max_limit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.ApiListHandler.post">
+<code class="descname">post</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle POST request.
+Validate data and create new item.
+Returns it&#8217;s id (PK).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiListHandler.post_schema_input">
+<code class="descname">post_schema_input</code><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.post_schema_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>JSON Schema to validate POST request body.
+:return: dict</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.ApiListHandler.post_schema_output">
+<code class="descname">post_schema_output</code><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.post_schema_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.ApiListHandler.prepare">
+<code class="descname">prepare</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.ApiListHandler.prepare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get and validate offset and limit params for GET REST request.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tcrudge.handlers.BaseHandler">
+<em class="property">class </em><code class="descclassname">tcrudge.handlers.</code><code class="descname">BaseHandler</code><span class="sig-paren">(</span><em>application</em>, <em>request</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.BaseHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></code></p>
+<p>Base helper class. Provides basic handy reponses.</p>
+<p>To be used for customized handlers that don&#8217;t fit REST API recommendations.</p>
+<p>Functions to handle different response formats must receive two arguments:
+- handler: subclass of tornado.web.RequestHandler;
+- answer: dictionary with response data.</p>
+<dl class="method">
+<dt id="tcrudge.handlers.BaseHandler.bad_permissions">
+<code class="descname">bad_permissions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.BaseHandler.bad_permissions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns answer of access denied.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.BaseHandler.get_response">
+<code class="descname">get_response</code><span class="sig-paren">(</span><em>result=None</em>, <em>errors=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.BaseHandler.get_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method returns conventional formatted byte answer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.BaseHandler.get_roles">
+<code class="descname">get_roles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.BaseHandler.get_roles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get roles.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.BaseHandler.is_auth">
+<code class="descname">is_auth</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.BaseHandler.is_auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate user authorized.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.BaseHandler.response">
+<code class="descname">response</code><span class="sig-paren">(</span><em>result=None</em>, <em>errors=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.BaseHandler.response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method writes the response and finishes the request.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.handlers.BaseHandler.response_callbacks">
+<code class="descname">response_callbacks</code><em class="property"> = {'application/json': &lt;function response_json at 0x104e630d0&gt;, 'application/x-msgpack': &lt;function response_msgpack at 0x104e669d8&gt;}</em><a class="headerlink" href="#tcrudge.handlers.BaseHandler.response_callbacks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.BaseHandler.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><em>data</em>, <em>schema</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.BaseHandler.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to validate parameters
+Raises HTTPError(400) with error info for invalid data
+:param data: bytes or dict
+:param schema: dict, valid json schema</p>
+<blockquote>
+<div>(<a class="reference external" href="http://json-schema.org/latest/json-schema-validation.html">http://json-schema.org/latest/json-schema-validation.html</a>)</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None if data is not valid. Else dict(data)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="tcrudge.handlers.BaseHandler.write_error">
+<code class="descname">write_error</code><span class="sig-paren">(</span><em>status_code</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.handlers.BaseHandler.write_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method gets traceback, writes it into response, finishes response.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tcrudge.models">
+<span id="tcrudge-models-module"></span><h2>tcrudge.models module<a class="headerlink" href="#module-tcrudge.models" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tcrudge.models.BaseModel">
+<em class="property">class </em><code class="descclassname">tcrudge.models.</code><code class="descname">BaseModel</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.models.BaseModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">peewee.Model</span></code></p>
+<dl class="attribute">
+<dt id="tcrudge.models.BaseModel.DoesNotExist">
+<code class="descname">DoesNotExist</code><a class="headerlink" href="#tcrudge.models.BaseModel.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">BaseModelDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="tcrudge.models.BaseModel.id">
+<code class="descname">id</code><em class="property"> = &lt;peewee.PrimaryKeyField object&gt;</em><a class="headerlink" href="#tcrudge.models.BaseModel.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="tcrudge.models.BaseModel.to_schema">
+<em class="property">classmethod </em><code class="descname">to_schema</code><span class="sig-paren">(</span><em>excluded=None</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.models.BaseModel.to_schema" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tcrudge.response">
+<span id="tcrudge-response-module"></span><h2>tcrudge.response module<a class="headerlink" href="#module-tcrudge.response" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tcrudge.response.response_json">
+<code class="descclassname">tcrudge.response.</code><code class="descname">response_json</code><span class="sig-paren">(</span><em>handler</em>, <em>answer</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.response.response_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="tcrudge.response.response_msgpack">
+<code class="descclassname">tcrudge.response.</code><code class="descname">response_msgpack</code><span class="sig-paren">(</span><em>handler</em>, <em>answer</em><span class="sig-paren">)</span><a class="headerlink" href="#tcrudge.response.response_msgpack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-tcrudge">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tcrudge" title="Permalink to this headline">¶</a></h2>
+<p>Simple async CRUDL framework based on Tornado and Peewee ORM</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">tcrudge package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-tcrudge.decorators">tcrudge.decorators module</a></li>
+<li><a class="reference internal" href="#module-tcrudge.handlers">tcrudge.handlers module</a></li>
+<li><a class="reference internal" href="#module-tcrudge.models">tcrudge.models module</a></li>
+<li><a class="reference internal" href="#module-tcrudge.response">tcrudge.response module</a></li>
+<li><a class="reference internal" href="#module-tcrudge">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tcrudge.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, CodeTeam.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/tcrudge.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

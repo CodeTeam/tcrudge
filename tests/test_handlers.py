@@ -17,20 +17,20 @@ TEST_DATA = [
         'tf_text': 'Test field 1',
         'tf_integer': 10,
         'tf_datetime': datetime.datetime(2016, 5, 5, 11),
-        'tf_boolean': True
+        'tf_boolean': True,
     },
     {
         'tf_text': 'Test field 2',
         'tf_integer': 20,
         'tf_datetime': datetime.datetime(2016, 1, 10, 12),
-        'tf_boolean': True
+        'tf_boolean': True,
     },
     {
         'tf_text': 'Test field 3',
         'tf_integer': -10,
         'tf_datetime': datetime.datetime(2016, 9, 15, 12),
-        'tf_boolean': False
-    }
+        'tf_boolean': False,
+    },
 ]
 
 

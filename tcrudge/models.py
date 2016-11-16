@@ -40,14 +40,15 @@ class BaseModel(peewee.Model):
                     }
                 )
                 if not type_field.null:
-                    schema.add_object(
-                        {
-                            field: None
-                        }
-                    )
                     schema.add_schema(
                         {
                             "required": [field]
+                        }
+                    )
+                else:
+                    schema.add_object(
+                        {
+                            field: None
                         }
                     )
         return schema.to_dict()

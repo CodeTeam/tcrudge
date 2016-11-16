@@ -157,25 +157,26 @@ def test_generate_schema():
     schema = ApiTestModel.to_schema()
     print(schema)
     assert {
-        'type': 'object', 'properties': 
-            {
-                'tf_integer': {'type': 'string', 'pattern': '^[+-]?[0-9]+$'}, 
-                'id': {'anyOf': [{'type': 'integer'}, {'type': 'null'}]}, 
-                'tf_decimal': {'anyOf': [{'type': 'number'}, {'type': 'string', 'pattern': '^[+-]?([0-9]*[.])?[0-9]+$'}]}, 
-                'tf_datetime': {'anyOf': [{'type': 'string'}, {'type': 'null'}]}, 
-                'tf_text': {'anyOf': [{'type': 'string'}, {'type': 'null'}]}
-            }, 
-        'required': ['id', 'tf_datetime', 'tf_text'], 'additionalProperties': False} == schema
-
+        'properties': {
+            'tf_datetime': {'type': 'string'}, 
+            'tf_decimal': {'anyOf': [{'type': 'number'}, 
+            {'pattern': '^[+-]?([0-9]*[.])?[0-9]+$', 'type': 'string'}, {'type': 'null'}]}, 
+            'tf_integer': {'anyOf': [{'type': 'integer'}, {'pattern': '^[+-]?[0-9]+$', 'type': 'string'}, {'type': 'null'}]}, 
+            'id': {'anyOf': [{'type': 'integer'}, {'pattern': '^[+-]?[0-9]+$', 'type': 'string'}]}, 
+            'tf_text': {'type': 'string'}}, 'required': ['id', 'tf_datetime', 'tf_text'], 
+            'additionalProperties': False, 'type': 'object'
+        } == schema
+    
     schema1 = ApiTestModel.to_schema(excluded=['id'])
     assert {
-        'type': 'object', 'properties': {
-            'tf_integer': {'type': 'string', 'pattern': '^[+-]?[0-9]+$'},  
-            'tf_decimal': {'anyOf': [{'type': 'number'}, {'type': 'string', 'pattern': '^[+-]?([0-9]*[.])?[0-9]+$'}]}, 
-            'tf_datetime': {'anyOf': [{'type': 'string'}, {'type': 'null'}]},
-            'tf_text': {'anyOf': [{'type': 'string'}, {'type': 'null'}]}
-        }, 
-        'required': ['tf_datetime', 'tf_text'], 'additionalProperties': False} == schema1
+        'properties': {
+            'tf_datetime': {'type': 'string'}, 
+            'tf_decimal': {'anyOf': [{'type': 'number'}, 
+            {'pattern': '^[+-]?([0-9]*[.])?[0-9]+$', 'type': 'string'}, {'type': 'null'}]}, 
+            'tf_integer': {'anyOf': [{'type': 'integer'}, {'pattern': '^[+-]?[0-9]+$', 'type': 'string'}, {'type': 'null'}]}, 
+            'tf_text': {'type': 'string'}}, 'required': ['tf_datetime', 'tf_text'], 
+            'additionalProperties': False, 'type': 'object'
+        } == schema1
 
 
 @pytest.mark.gen_test

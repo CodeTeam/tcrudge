@@ -1,5 +1,5 @@
 """
-General fixtures for Tornado application testing
+General fixtures for Tornado application testing.
 """
 
 import os

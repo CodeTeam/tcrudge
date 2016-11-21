@@ -1,7 +1,13 @@
+"""
+Module containing decorators.
+"""
+
+
 def perm_roles(items):
     """
-    Check roles from input list.
+    Check roles from input list. Auth logic is up to user. All auth
     """
+
     def wrap(f):
         async def func(self, *args, **kw):
             auth = await self.is_auth()
@@ -17,5 +23,7 @@ def perm_roles(items):
                 return await f(self, *args, **kw)
             else:
                 await self.bad_permissions()
+
         return func
+
     return wrap

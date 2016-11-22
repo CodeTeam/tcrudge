@@ -398,6 +398,7 @@ class ApiListHandler(ApiHandler):
         and peewee.DQ - this method provides joins.
 
         Filter relational operators are:
+        * NOT - '-', not operator, should be user as prefix
         * < - 'lt', less than
         * > - 'gt', greater than
         * <= - 'lte', less than or equal
@@ -405,8 +406,8 @@ class ApiListHandler(ApiHandler):
         * != - 'ne', not equal
         * LIKE - 'like', classic like operator
         * ILIKE - 'ilike', case-insensitive like operator
-        * IN - 'in', classic in
-        * ISNULL - 'isnull', operator to know if smth is equal to null
+        * IN - 'in', classic in. Values should be separated by comma
+        * ISNULL - 'isnull', operator to know if smth is equal to null. Use -<fieldname>__isnull for IS NOT NULL
         """
         neg = False
         if flt[0] in '-':
@@ -452,7 +453,7 @@ class ApiListHandler(ApiHandler):
         """
         Set ORDER BY part of response.
         Fields are passed in a string with commas to separate values.
-        Minus means descending order, otherwise it is ascending order.
+        '-' prefix means descending order, otherwise it is ascending order.
 
         :return: orderbyed queryset
         :rtype: queryset
@@ -510,10 +511,13 @@ class ApiListHandler(ApiHandler):
     async def _get_items(self, qs):
         """
         Gets queryset and paginates it.
-        It executes database query in parallel.
+        It executes database query. If total amount of items should be received (self.total = True), 
+        queries are executed in parallel.
 
-        :param qs: Queryset!
-        :return: paginated queryset
+        :param qs: peewee queryset
+        :return: tuple: executed query, pagination info (dict)
+        
+        :raises: In case of bad query parameters - HTTP 400.
         """
         pagination = {'offset': self.offset}
         try:
@@ -560,7 +564,7 @@ class ApiListHandler(ApiHandler):
         4. Serializes result.
         5. Writes to response, not finishing it.
 
-        :raises: In case of bad query parameters - 400.
+        :raises: In case of bad query parameters - HTTP 400.
         """
         self.validate({k: self.get_argument(k) for k in
                        self.request.query_arguments.keys()},

@@ -2,6 +2,7 @@
 Functions to handle different response formats must receive two arguments:
     - handler: subclass of tornado.web.RequestHandler;
     - answer: dictionary with response data.
+and return bytes
 """
 import json
 

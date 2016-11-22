@@ -5,7 +5,7 @@ Module containing decorators.
 
 def perm_roles(items):
     """
-    Check roles from input list. Auth logic is up to user. All auth
+    Check roles from input list. Auth logic is up to user.
     """
 
     def wrap(f):

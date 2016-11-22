@@ -1,5 +1,10 @@
 """
 Module contains basic handlers.
+
+BaseHandler - to be used for custom handlers. For instance - RPC, if you wish.
+ApiHandler - Abstract for API handlers above.
+ApiListHandler - Create (POST), List view (GET).
+ApiItemHandler - detailed view (GET), Update (PUT), Delete (DELETE).
 """
 
 import json
@@ -18,15 +23,17 @@ from tcrudge.response import response_json, response_msgpack
 from tcrudge.utils.validation import validate_integer
 
 
-class BaseHandler(web.RequestHandler):
+class BaseHandler(web.RequestHandler):  # TODO implement all abstract methods
     """
-    Base helper class. Provides basic handy reponses.
+    Base helper class. Provides basic handy responses.
 
     To be used for customized handlers that don't fit REST API recommendations.
 
-    Functions to handle different response formats must receive two arguments:
-    - handler: subclass of tornado.web.RequestHandler;
-    - answer: dictionary with response data.
+    Defines response types in relation to Accept header. Response interface is
+    described in corresponding module.
+
+    By default, inherited handlers have callback functions for JSON and
+    MessagePack responses.
     """
 
     response_callbacks = {
@@ -36,7 +43,16 @@ class BaseHandler(web.RequestHandler):
 
     def get_response(self, result=None, errors=None, **kwargs):
         """
-        Method returns conventional formatted byte answer
+        Method returns conventional formatted byte answer.
+
+        It gets Accept header, returns answer processed by callback.
+
+        :param result: contains result if succeeded
+        :param errors: contains errors if any
+        :param kwargs: other answer attributes
+        :return: byte answer of appropriate content type
+        :rtype: bytes
+
         """
         _errors = errors or []
         # Set success flag
@@ -56,16 +72,27 @@ class BaseHandler(web.RequestHandler):
     def response(self, result=None, errors=None, **kwargs):
         """
         Method writes the response and finishes the request.
+
+        :param result: contains result if succeeded
+        :param errors: contains errors if any
+        :param kwargs: other answer attributes
         """
         self.write(self.get_response(result, errors, **kwargs))
         self.finish()
 
-    def write_error(self, status_code, **kwargs):
+    def write_error(self, status_code, **kwargs):  # TODO WTF
         """
         Method gets traceback, writes it into response, finishes response.
+
+        :param status_code: tornado parameter to format html, we don't use it.
+        :type status_code: int
+        :param kwargs: in debug mode must contain exc_info.
+        :type kwargs: dict
         """
-        if self.settings.get("serve_traceback") and "exc_info" in kwargs:  # pragma: no cover
+        if self.settings.get(
+                "serve_traceback") and "exc_info" in kwargs:  # pragma: no cover
             # in debug mode, try to send a traceback
+            # TODO a different way to know if its a DEBUG?
             self.set_header('Content-Type', 'text/plain')
             for line in traceback.format_exception(*kwargs["exc_info"]):
                 self.write(line)
@@ -75,10 +102,11 @@ class BaseHandler(web.RequestHandler):
 
     def validate(self, data, schema):
         """
-        Method to validate parameters
-        Raises HTTPError(400) with error info for invalid data
+        Method to validate parameters.
+        Raises HTTPError(400) with error info for invalid data.
+
         :param data: bytes or dict
-        :param schema: dict, valid json schema
+        :param schema: dict, valid JSON schema
           (http://json-schema.org/latest/json-schema-validation.html)
         :return: None if data is not valid. Else dict(data)
         """
@@ -92,33 +120,39 @@ class BaseHandler(web.RequestHandler):
         except ValueError:
             # json.loads error
             raise web.HTTPError(400, reason=self.get_response(
-                errors=[{'code': '', 'message': 'Request body is not a valid json object'}]))
+                    errors=[{'code': '',
+                             'message': 'Request body is not a valid json '
+                                        'object'}]))
         except exceptions.ValidationError as exc:
             # data does not pass validation
             raise web.HTTPError(400, reason=self.get_response(
-                errors=[{'code': '', 'message': 'Validation failed', 'detail': str(exc)}]))
+                    errors=[{'code': '', 'message': 'Validation failed',
+                             'detail': str(exc)}]))
         return _data
 
     async def bad_permissions(self):
         """
         Returns answer of access denied.
+
+        :raises: HTTPError 401
         """
         raise web.HTTPError(
-            401,
-            reason=self.get_response(errors=[{'code': '', 'message': 'Access denied'}])
+                401,
+                reason=self.get_response(
+                        errors=[{'code': '', 'message': 'Access denied'}])
         )
 
     async def is_auth(self):
         """
-        Validate user authorized.
+        Validate user authorized. Abstract. Auth logic is up to user.
         """
-        # await self.bad_permissions()
         return True
 
     async def get_roles(self):
         """
-        Get roles.
+        Gets roles. Abstract. Auth logic is up to user.
         """
+
         return []
 
 
@@ -156,6 +190,7 @@ class ApiHandler(BaseHandler, metaclass=ABCMeta):
         The answer is that we wanted to check input of every request method
         in a homologous way. So we decided to describe any input and output
         using JSON schema.
+        Schema is always a dict.
         """
         return {}
 
@@ -163,7 +198,14 @@ class ApiHandler(BaseHandler, metaclass=ABCMeta):
         """
         Method to serialize a model.
         By default all fields are serialized by model_to_dict.
-        The model can be any model you'll pass through this method.
+        The model can be any model instance to pass through this method.
+
+        :param model: Model instance to serialize. It MUST be a Model
+        instance, it won't work for basic types containing such instances.
+        User have to handle it by their own hands.
+        :type model: Model instance.
+        :return: serialized model.
+        :rtype: dict
         """
         return model_to_dict(model,
                              recurse=self.recurse,
@@ -173,8 +215,31 @@ class ApiHandler(BaseHandler, metaclass=ABCMeta):
 
 class ApiListHandler(ApiHandler):
     """
-    Base List API Handler.
-    Supports C, L from CRUDL.
+    Base List API Handler. Supports C, L from CRUDL.
+    Handles pagination,
+    -default limit is defined
+    -maximum limit is defined
+    One can redefine that in their code.
+
+    Other pagination parameters are:
+    -limit - a positive number of items to show on a single page, int.
+    -offset - a positive int to define the position in result set to start with.
+    -total - A boolean to define total amount of items to be put in result set
+    or not. 1 or 0.
+
+    Those parameters can be sent as either GET parameters or HTTP headers.
+    HTTP headers are more significant during parameters processing, but GET
+    parameters are preferable to use as conservative way of pagination.
+    HTTP headers are:
+    -X-Limit
+    -X-Offset
+    -X-Total
+
+    exclude filter args are for pagination, you must not redefine them ever.
+    Otherwise you'd have to also redefine the prepare method.
+
+    Some fieldnames can be added to that list. Those are fields one wishes not
+    to be included to filters.
     """
     # Pagination settings
     # Default amount of items to be listed (if no limit passed by request
@@ -202,36 +267,90 @@ class ApiListHandler(ApiHandler):
     @property
     def get_schema_input(self):
         """
-        JSON Schema to validate GET Url parameters
-        :return: dict
+        JSON Schema to validate GET Url parameters.
+        By default it contains pagination parameters as required fields.
+        If you wish to use query filters via GET parameters, you need to
+        redefine get_schema_input so that request with filter parameters
+        would be valid.
+        In schema you must define every possible way to filter a field,
+        you wish to be filtered, in every manner it should be filtered.
+        For example, if you wish to filter by a field "name" so that the query
+        returns you every object with name like given string:
+          ``{
+              "type": "object",
+              "additionalProperties": False,
+              "properties": {
+                "name__like": {"type": "string"},
+                "total": {"type": "string"},
+                "limit": {"type": "string"},
+                "offset": {"type": "string"},
+                "order_by": {"type": "string"},
+              },
+            }``
+
+        If you wish to filter by a field "created_dt" by given range:
+          ``{
+              "type": "object",
+              "additionalProperties": False,
+              "properties": {
+                "created_dt__gte": {"type": "string"},
+                "created_dt__lte": {"type": "string"},
+                "total": {"type": "string"},
+                "limit": {"type": "string"},
+                "offset": {"type": "string"},
+                "order_by": {"type": "string"},
+              },
+            }``
+
+        To cut it short, you need to add parameters like "field__operator"
+        for every field you wish to be filtered and for every operator you
+        wish to be used.
+
+        Every schema must be a dict.
+
+        :return: returns schema.
+        :rtype: dict
         """
         return {
-            "type" : "object",
+            "type": "object",
             "additionalProperties": False,
-            "properties" : {
-                "total" : {"type": "string"},
-                "limit" : {"type": "string"},
-                "offset" : {"type": "string"},
-                "order_by" : {"type" : "string"},
+            "properties": {
+                "total": {"type": "string"},
+                "limit": {"type": "string"},
+                "offset": {"type": "string"},
+                "order_by": {"type": "string"},
             },
         }
 
     @property
     def post_schema_input(self):
         """
-        JSON Schema to validate POST request body.
+        JSON Schema to validate POST request body. Abstract.
+        Every schema must be a dict.
+
         :return: dict
         """
         return {}
 
     @property
     def post_schema_output(self):  # pragma: no cover
+        """
+        JSON schema of our model is generated here. Basically it is used for
+        Create method - list handler, method POST.
+        Hint: Modified version of this schema can be used for Update (PUT,
+        detail view).
+
+        :return: JSON schema of given model_cls Model.
+        :rtype: dict
+        """
         return self.model_cls.to_schema(excluded=['id'])
 
     @property
     def default_filter(self):
         """
         Default queryset WHERE clause. Used for list queries first.
+        One must redefine it to customize filters.
+
         :return: dict
         """
         return {}
@@ -239,34 +358,57 @@ class ApiListHandler(ApiHandler):
     @property
     def default_order_by(self):
         """
-        Default queryset ORDER BY clause. Used for list queries first.
+        Default queryset ORDER BY clause. Used for list queries.
+        Order by must contain a string with a model field name.
         """
         return ()
 
     def prepare(self):
         """
         Method to get and validate offset and limit params for GET REST request.
+        Total is boolean 1 or 0.
+        Works for GET method only.
         """
         # Headers are more significant when taking limit and offset
         if self.request.method == 'GET':
             # No more than MAX_LIMIT records at once
             # Not less than 1 record at once
-            limit = self.request.headers.get('X-Limit', self.get_query_argument('limit', self.default_limit))
-            self.limit = validate_integer(limit, 1, self.max_limit, self.default_limit)
+            limit = self.request.headers.get('X-Limit',
+                                             self.get_query_argument('limit',
+                                                                     self.default_limit))
+            self.limit = validate_integer(limit, 1, self.max_limit,
+                                          self.default_limit)
 
             # Offset should be a non negative integer
-            offset = self.request.headers.get('X-Offset', self.get_query_argument('offset', 0))
+            offset = self.request.headers.get('X-Offset',
+                                              self.get_query_argument('offset',
+                                                                      0))
             self.offset = validate_integer(offset, 0, None, 0)
 
             # Force send total amount of items
-            self.total = 'X-Total' in self.request.headers or self.get_query_argument('total', None) == '1'
+            self.total = 'X-Total' in self.request.headers or \
+                         self.get_query_argument(
+                                 'total', None) == '1'
 
     @classmethod
     def __qs_filter(cls, qs, flt, value, process_value=True):
         """
-        Set WHERE part of response.
+        Private method to set WHERE part of query.
         If required, Django-style filter is available via qs.filter()
         and peewee.DQ - this method provides joins.
+
+        Filter relational operators are:
+        * NOT - '-', not operator, should be user as prefix
+        * < - 'lt', less than
+        * > - 'gt', greater than
+        * <= - 'lte', less than or equal
+        * >= - 'gte', greater than or equal
+        * != - 'ne', not equal
+        * LIKE - 'like', classic like operator
+        * ILIKE - 'ilike', case-insensitive like operator
+        * IN - 'in', classic in. Values should be separated by comma
+        * ISNULL - 'isnull', operator to know if smth is equal to null. Use
+        -<fieldname>__isnull for IS NOT NULL
         """
         neg = False
         if flt[0] in '-':
@@ -311,6 +453,11 @@ class ApiListHandler(ApiHandler):
     def __qs_order_by(cls, qs, value, process_value=True):
         """
         Set ORDER BY part of response.
+        Fields are passed in a string with commas to separate values.
+        '-' prefix means descending order, otherwise it is ascending order.
+
+        :return: orderbyed queryset
+        :rtype: queryset
         """
         # Empty parameters are skipped
         if process_value:
@@ -332,6 +479,9 @@ class ApiListHandler(ApiHandler):
         """
         Get queryset for model.
         Override this method to change logic.
+
+        By default it uses __qs_filter and __qs_order_by.
+        All arguments for WHERE clause are passed with AND condition.
         """
         # Set limit / offset parameters
         qs = self.model_cls.select()
@@ -354,11 +504,23 @@ class ApiListHandler(ApiHandler):
                 # Ordering
                 qs = self.__qs_order_by(qs, v[0])
             else:
-                # Filtration. All arguments passed with AND condition (WHERE <...> AND <...> etc)
+                # Filtration. All arguments passed with AND condition (WHERE
+                # <...> AND <...> etc)
                 qs = self.__qs_filter(qs, k, v[0])
         return qs
-    
+
     async def _get_items(self, qs):
+        """
+        Gets queryset and paginates it.
+        It executes database query. If total amount of items should be
+        received (self.total = True),
+        queries are executed in parallel.
+
+        :param qs: peewee queryset
+        :return: tuple: executed query, pagination info (dict)
+        
+        :raises: In case of bad query parameters - HTTP 400.
+        """
         pagination = {'offset': self.offset}
         try:
             if self.total:
@@ -367,7 +529,8 @@ class ApiListHandler(ApiHandler):
                 qs_total = self.get_queryset(paginate=False)
                 if self.prefetch_queries:
                     # Support of prefetch queries
-                    awaitables.append(self.application.objects.prefetch(qs, *self.prefetch_queries))
+                    awaitables.append(self.application.objects.prefetch(qs,
+                                                                        *self.prefetch_queries))
                 else:
                     awaitables.append(self.application.objects.execute(qs))
                 awaitables.append(self.application.objects.count(qs_total))
@@ -376,30 +539,48 @@ class ApiListHandler(ApiHandler):
                 pagination['total'] = total
             else:
                 if self.prefetch_queries:
-                    items = await self.application.objects.prefetch(qs, *self.prefetch_queries)
+                    items = await self.application.objects.prefetch(qs,
+                                                                    *self.prefetch_queries)
                 else:
                     items = await self.application.objects.execute(qs)
         except (peewee.DataError, ValueError):
             # Bad parameters
             raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Bad query arguments'}]))
+                                reason=self.get_response(errors=[{'code': '',
+                                                                  'message':
+                                                                      'Bad '
+                                                                      'query '
+                                                                      'arguments'}]))
         # Set number of fetched items
-        pagination['limit'] = len(items)
+        pagination['limit'] = len(items)  # TODO WTF? Why limit is set?
 
         return items, pagination
 
     async def get(self):
         """
-        Handle GET request.
-        List items with given query parameters.
+        Handles GET request.
+
+        1. Validates GET parameters using GET input schema and validator.
+        2. Executes query using given query parameters.
+        3. Paginates.
+        4. Serializes result.
+        5. Writes to response, not finishing it.
+
+        :raises: In case of bad query parameters - HTTP 400.
         """
-        self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()}, self.get_schema_input)
+        self.validate({k: self.get_argument(k) for k in
+                       self.request.query_arguments.keys()},
+                      self.get_schema_input)
         try:
             qs = self.get_queryset()
         except AttributeError:
             # Wrong field name in filter or order_by
             raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Bad query arguments'}]))
+                                reason=self.get_response(errors=[{'code': '',
+                                                                  'message':
+                                                                      'Bad '
+                                                                      'query '
+                                                                      'arguments'}]))
         items, pagination = await self._get_items(qs)
         result = []
         for m in items:
@@ -408,41 +589,67 @@ class ApiListHandler(ApiHandler):
 
     async def head(self):
         """
-        Handle HEAD request.
-        Fetch total amount of items and return them in header.
+        Handles HEAD request.
+
+        1. Validates GET parameters using GET input schema and validator.
+        2. Fetches total amount of items and returns it in X-Total header.
+        3. Finishes response.
+
+        :raises: In case of bad query parameters - 400.
         """
-        self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()}, self.get_schema_input)
+        self.validate({k: self.get_argument(k) for k in
+                       self.request.query_arguments.keys()},
+                      self.get_schema_input)
         try:
             qs = self.get_queryset(paginate=False)
         except AttributeError:
             # Wrong field name in filter or order_by
             raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Bad query arguments'}]))
+                                reason=self.get_response(errors=[{'code': '',
+                                                                  'message':
+                                                                      'Bad '
+                                                                      'query '
+                                                                      'arguments'}]))
         try:
             total_num = await self.application.objects.count(qs)
         except (peewee.DataError, peewee.ProgrammingError, ValueError):
             # Bad parameters
             raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Bad query arguments'}]))
+                                reason=self.get_response(errors=[{'code': '',
+                                                                  'message':
+                                                                      'Bad '
+                                                                      'query '
+                                                                      'arguments'}]))
         self.set_header('X-Total', total_num)
         self.finish()
 
     async def post(self):
         """
-        Handle POST request.
-        Validate data and create new item.
-        Returns it's id (PK).
+        Handles POST request.
+        Validates data and creates new item.
+        Returns serialized object written to response.
+
+        :raises: HTTPError. 405 in case of not creatable model (there must be
+        _create method implemented in model class).
+        400 in case of violated constraints, invalid parameters and other
+        data and integrity errors.
         """
         data = self.validate(self.request.body, self.post_schema_input)
         try:
             item = await self.model_cls._create(self.application, data)
         except AttributeError:
-            # We can only create item if model implements _create() method
+            # We can only create item if _create() model method implemented
             raise web.HTTPError(405,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Method not allowed'}]))
+                                reason=self.get_response(errors=[{'code': '',
+                                                                  'message':
+                                                                      'Method '
+                                                                      'not '
+                                                                      'allowed'}]))
         except (peewee.IntegrityError, peewee.DataError):
             raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Invalid parameters'}]))
+                                reason=self.get_response(errors=[{'code': '',
+                                                                  'message':
+                                                                      'Invalid parameters'}]))
         self.response(result=await self.serialize(item))
 
 
@@ -456,17 +663,23 @@ class ApiItemHandler(ApiHandler):
     def get_schema_input(self):
         """
         JSON Schema to validate DELETE request body.
+
+        :returns: GET JSON schema
+        :rtype: dict
         """
         return {
-            "type" : "object",
+            "type": "object",
             "additionalProperties": False,
-            "properties" : {}
+            "properties": {}
         }
 
     @property
     def put_schema_input(self):
         """
         JSON Schema to validate PUT request body.
+
+        :return: JSON schema of PUT
+        :rtype: dict
         """
         return self.model_cls.to_schema(excluded=['id'])
 
@@ -474,48 +687,72 @@ class ApiItemHandler(ApiHandler):
     def delete_schema_input(self):
         """
         JSON Schema to validate DELETE request body.
+
+        :returns: JSON schema for DELETE.
+        :rtype: dict
         """
         return {
-            "type" : "object",
+            "type": "object",
             "additionalProperties": False,
-            "properties" : {}
+            "properties": {}
         }
 
     @property
     def put_schema_output(self):  # pragma: no cover
+        """
+        Returns PUT Schema, empty be default.
+
+        :rtype: dict
+        """
         return {}
 
     @property
     def delete_schema_output(self):  # pragma: no cover
+        """
+        Returns DELETE Schema, empty be default.
+
+        :rtype: dict
+        """
         return {}
 
     async def get_item(self, item_id):
         """
-        Fetch item from database by PK.
-        Raises HTTP 404 if no item found.
+        Fetches item from database by PK.
+        :raises: HTTP 404 if no item found.
+        :returns: raw object if exists.
+        :rtype: ORM model instance.
         """
         try:
             return await self.application.objects.get(self.model_cls,
-                                                      **{self.model_cls._meta.primary_key.name: item_id})
+                                                      **{
+                                                          self.model_cls._meta.primary_key.name: item_id})
         except (self.model_cls.DoesNotExist, ValueError):
             raise web.HTTPError(404,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Item not found'}]))
+                                reason=self.get_response(errors=[
+                                    {'code': '', 'message': 'Item not found'}]))
 
     async def get(self, item_id):
         """
-        Handle GET request.
-        Returns serialized object.
+        Handles GET request.
+        Validates request first.
+        Then writes serialized object of ORM model instance to response.
         """
-        self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()}, self.get_schema_input)
+        self.validate({k: self.get_argument(k) for k in
+                       self.request.query_arguments.keys()},
+                      self.get_schema_input)
         item = await self.get_item(item_id)
 
         self.response(result=await self.serialize(item))
 
     async def put(self, item_id):
         """
-        Handle PUT request.
-        Validate data and update given item.
-        Return HTTP 200 OK with result='success'.
+        Handles PUT request.
+        Validates data and updates given item.
+        Returns serialized model.
+        :raises: 405 in case of not updatable model (there must be
+        _update method implemented in model class).
+        400 in case of violated constraints, invalid parameters and other
+        data and integrity errors.
         """
         item = await self.get_item(item_id)
 
@@ -523,20 +760,30 @@ class ApiItemHandler(ApiHandler):
         try:
             item = await item._update(self.application, data)
         except AttributeError:
-            # We can only update item if model method _update() is implemented
+            # We can only update item if model method _update is implemented
             raise web.HTTPError(405,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Method not allowed'}]))
+                                reason=self.get_response(errors=[{'code': '',
+                                                                  'message':
+                                                                      'Method '
+                                                                      'not '
+                                                                      'allowed'}]))
         except (peewee.IntegrityError, peewee.DataError):
             raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Invalid parameters'}]))
+                                reason=self.get_response(errors=[{'code': '',
+                                                                  'message':
+                                                                      'Invalid parameters'}]))
 
         self.response(result=await self.serialize(item))
 
     async def delete(self, item_id):
         """
-        Handle DELETE request.
-        Model should define remove() method to handle delete logic. If method
+        Handles DELETE request.
+        _delete method must be defined to handle delete logic. If method
         is not defined, HTTP 405 is raised.
+        If deletion is finished, writes to response HTTP code 200 and
+        a message 'Item deleted'.
+
+        :raises: HTTPError 405 if model object is not deletable.
         """
         # DELETE usually does not have body to validate.
         self.validate(self.request.body or {}, self.delete_schema_input)
@@ -546,6 +793,10 @@ class ApiItemHandler(ApiHandler):
             await item._delete(self.application)
         except AttributeError:
             raise web.HTTPError(405,
-                                reason=self.get_response(errors=[{'code': '', 'message': 'Method not allowed'}]))
+                                reason=self.get_response(errors=[{'code': '',
+                                                                  'message':
+                                                                      'Method '
+                                                                      'not '
+                                                                      'allowed'}]))
 
         self.response(result='Item deleted')

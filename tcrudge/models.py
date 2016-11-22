@@ -1,12 +1,21 @@
+"""
+Module contains basic model class.
+"""
+
 import operator
 import genson
 import peewee
 
 
 class BaseModel(peewee.Model):
+    """
+    Basic abstract model.
+    """
     async def _update(self, app, data):
         """
         By default method sets all given attributes.
+
+        :returns: updated self instance.
         """
         for k, v in data.items():
             setattr(self, k, v)
@@ -17,6 +26,8 @@ class BaseModel(peewee.Model):
     async def _create(cls, app, data):
         """
         By default method creates instance with all given attributes.
+
+        :returns: created object.
         """
         return await app.objects.create(cls, **data)
 
@@ -28,6 +39,15 @@ class BaseModel(peewee.Model):
 
     @classmethod
     def to_schema(cls, excluded=None):
+        """
+        Generates JSON schema from ORM model.
+
+        :param excluded: Excluded parameters. By default the only fields are
+        pagination settings.
+        :type excluded: list or tuple.
+        :return: JSON schema.
+        :rtype: dict
+        """
         if not excluded:
             excluded = []
         schema = genson.Schema.create_default_schema()
@@ -35,21 +55,21 @@ class BaseModel(peewee.Model):
         for field, type_field in cls._meta.fields.items():
             if field not in excluded:
                 schema.add_object(
-                    {
-                        field: type_field.get_column_type()
-                    }
+                        {
+                            field: type_field.get_column_type()
+                        }
                 )
                 if not type_field.null:
                     schema.add_schema(
-                        {
-                            "required": [field]
-                        }
+                            {
+                                "required": [field]
+                            }
                     )
                 else:
                     schema.add_object(
-                        {
-                            field: None
-                        }
+                            {
+                                field: None
+                            }
                     )
         return schema.to_dict()
 

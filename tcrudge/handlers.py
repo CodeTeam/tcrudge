@@ -1,10 +1,10 @@
 """
 Module contains basic handlers.
 
-Base handler - to be used for custom handlers. For instance - RPC, if you wish.
+BaseHandler - to be used for custom handlers. For instance - RPC, if you wish.
 ApiHandler - Abstract for API handlers above.
 ApiListHandler - Create (POST), List view (GET).
-ApiItemHandler - detailed view (read), Update (PUT), Delete (DELETE).
+ApiItemHandler - detailed view (GET), Update (PUT), Delete (DELETE).
 """
 
 import json
@@ -85,7 +85,7 @@ class BaseHandler(web.RequestHandler):  # TODO implement all abstract methods
         Method gets traceback, writes it into response, finishes response.
 
         :param status_code: tornado parameter to format html, we don't use it.
-        :type status_code: whatever.
+        :type status_code: int
         :param kwargs: in debug mode must contain exc_info.
         :type kwargs: dict
         """
@@ -267,8 +267,45 @@ class ApiListHandler(ApiHandler):
     @property
     def get_schema_input(self):
         """
-        JSON Schema to validate GET Url parameters. Can be redefined.
-        By default it contains pagination parameters as required field.
+        JSON Schema to validate GET Url parameters.
+        By default it contains pagination parameters as required fields.
+        If you wish to use query filters via GET parameters, you need to
+        redefine get_schema_input so that request with filter parameters
+        would be valid.
+        In schema you must define every possible way to filter a field,
+        you wish to be filtered, in every manner it should be filtered.
+        For example, if you wish to filter by a field "name" so that the query
+        returns you every object with name like given string:
+          ``{
+              "type": "object",
+              "additionalProperties": False,
+              "properties": {
+                "name__like": {"type": "string"},
+                "total": {"type": "string"},
+                "limit": {"type": "string"},
+                "offset": {"type": "string"},
+                "order_by": {"type": "string"},
+              },
+            }``
+
+        If you wish to filter by a field "created_dt" by given range:
+          ``{
+              "type": "object",
+              "additionalProperties": False,
+              "properties": {
+                "created_dt__gte": {"type": "string"},
+                "created_dt__lte": {"type": "string"},
+                "total": {"type": "string"},
+                "limit": {"type": "string"},
+                "offset": {"type": "string"},
+                "order_by": {"type": "string"},
+              },
+            }``
+
+        To cut it short, you need to add parameters like "field__operator"
+        for every field you wish to be filtered and for every operator you
+        wish to be used.
+
         Every schema must be a dict.
 
         :return: returns schema.
@@ -584,7 +621,7 @@ class ApiListHandler(ApiHandler):
         """
         Handles POST request.
         Validates data and creates new item.
-        Returns it's ID (PK) written to response.
+        Returns serialized object written to response.
 
         :raises: HTTPError. 405 in case of not creatable model (there must be
         _create method implemented in model class).
@@ -705,7 +742,7 @@ class ApiItemHandler(ApiHandler):
         """
         Handles PUT request.
         Validates data and updates given item.
-        Returns HTTP 200 OK with result='success'.
+        Returns serialized model.
         :raises: 405 in case of not updatable model (there must be
         _update method implemented in model class).
         400 in case of violated constraints, invalid parameters and other
@@ -717,7 +754,7 @@ class ApiItemHandler(ApiHandler):
         try:
             item = await item._update(self.application, data)
         except AttributeError:
-            # We can only update item if model method _update() is implemented
+            # We can only update item if model method _update is implemented
             raise web.HTTPError(405,
                                 reason=self.get_response(errors=[{'code': '',
                                                                   'message':
@@ -735,7 +772,7 @@ class ApiItemHandler(ApiHandler):
     async def delete(self, item_id):
         """
         Handles DELETE request.
-        remove() method must be defined to handle delete logic. If method
+        _delete method must be defined to handle delete logic. If method
         is not defined, HTTP 405 is raised.
         If deletion is finished, writes to response HTTP code 200 and
         a message 'Item deleted'.

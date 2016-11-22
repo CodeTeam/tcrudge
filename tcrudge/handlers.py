@@ -407,7 +407,8 @@ class ApiListHandler(ApiHandler):
         * LIKE - 'like', classic like operator
         * ILIKE - 'ilike', case-insensitive like operator
         * IN - 'in', classic in. Values should be separated by comma
-        * ISNULL - 'isnull', operator to know if smth is equal to null. Use -<fieldname>__isnull for IS NOT NULL
+        * ISNULL - 'isnull', operator to know if smth is equal to null. Use
+        -<fieldname>__isnull for IS NOT NULL
         """
         neg = False
         if flt[0] in '-':
@@ -511,7 +512,8 @@ class ApiListHandler(ApiHandler):
     async def _get_items(self, qs):
         """
         Gets queryset and paginates it.
-        It executes database query. If total amount of items should be received (self.total = True), 
+        It executes database query. If total amount of items should be
+        received (self.total = True),
         queries are executed in parallel.
 
         :param qs: peewee queryset

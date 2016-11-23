@@ -1,10 +1,10 @@
 """
-Module contains basic handlers.
+Module contains basic handlers:
 
-BaseHandler - to be used for custom handlers. For instance - RPC, if you wish.
-ApiHandler - Abstract for API handlers above.
-ApiListHandler - Create (POST), List view (GET).
-ApiItemHandler - detailed view (GET), Update (PUT), Delete (DELETE).
+* BaseHandler - to be used for custom handlers. For instance - RPC, if you wish.
+* ApiHandler - Abstract for API handlers above.
+* ApiListHandler - Create (POST), List view (GET).
+* ApiItemHandler - detailed view (GET), Update (PUT), Delete (DELETE).
 """
 
 import json
@@ -179,6 +179,7 @@ class ApiHandler(BaseHandler, metaclass=ABCMeta):
         if nothing seems to be accessing a model class. If you think you don't
         need a model class, consider the architecture. Maybe it doesn't
         fit REST. In that case use BaseHandler.
+
         https://github.com/CodeTeam/tcrudge/issues/6
         """
         raise NotImplementedError('Model class must be defined.')
@@ -187,22 +188,27 @@ class ApiHandler(BaseHandler, metaclass=ABCMeta):
     def get_schema_output(self):  # pragma: no cover
         """
         Maybe you'd ask: "What's a get-schema?"
+
         The answer is that we wanted to check input of every request method
         in a homologous way. So we decided to describe any input and output
         using JSON schema.
-        Schema is always a dict.
+
+        Schema must be a dict.
         """
         return {}
 
     async def serialize(self, model):
         """
         Method to serialize a model.
-        By default all fields are serialized by model_to_dict.
-        The model can be any model instance to pass through this method.
 
-        :param model: Model instance to serialize. It MUST be a Model
-        instance, it won't work for basic types containing such instances.
+        By default all fields are serialized by model_to_dict.
+        The model can be any model instance to pass through this method. It
+        MUST be a Model instance, it won't work for basic types containing
+        such instances.
+
         User have to handle it by their own hands.
+
+        :param model: Model instance to serialize.
         :type model: Model instance.
         :return: serialized model.
         :rtype: dict
@@ -217,25 +223,30 @@ class ApiListHandler(ApiHandler):
     """
     Base List API Handler. Supports C, L from CRUDL.
     Handles pagination,
-    -default limit is defined
-    -maximum limit is defined
+
+    * default limit is defined
+    * maximum limit is defined
+
     One can redefine that in their code.
 
     Other pagination parameters are:
-    -limit - a positive number of items to show on a single page, int.
-    -offset - a positive int to define the position in result set to start with.
-    -total - A boolean to define total amount of items to be put in result set
-    or not. 1 or 0.
+
+    * limit - a positive number of items to show on a single page, int.
+    * offset - a positive int to define the position in result set to start
+    with.
+    * total - A boolean to define total amount of items to be put in result set
+      or not. 1 or 0.
 
     Those parameters can be sent as either GET parameters or HTTP headers.
     HTTP headers are more significant during parameters processing, but GET
     parameters are preferable to use as conservative way of pagination.
     HTTP headers are:
-    -X-Limit
-    -X-Offset
-    -X-Total
 
-    exclude filter args are for pagination, you must not redefine them ever.
+    * X-Limit
+    * X-Offset
+    * X-Total
+
+    "exclude" filter args are for pagination, you must not redefine them ever.
     Otherwise you'd have to also redefine the prepare method.
 
     Some fieldnames can be added to that list. Those are fields one wishes not
@@ -272,11 +283,13 @@ class ApiListHandler(ApiHandler):
         If you wish to use query filters via GET parameters, you need to
         redefine get_schema_input so that request with filter parameters
         would be valid.
+
         In schema you must define every possible way to filter a field,
         you wish to be filtered, in every manner it should be filtered.
         For example, if you wish to filter by a field "name" so that the query
-        returns you every object with name like given string:
-          ``{
+        returns you every object with name like given string::
+
+          {
               "type": "object",
               "additionalProperties": False,
               "properties": {
@@ -286,10 +299,12 @@ class ApiListHandler(ApiHandler):
                 "offset": {"type": "string"},
                 "order_by": {"type": "string"},
               },
-            }``
+          }
 
-        If you wish to filter by a field "created_dt" by given range:
-          ``{
+
+        If you wish to filter by a field "created_dt" by given range::
+
+          {
               "type": "object",
               "additionalProperties": False,
               "properties": {
@@ -300,7 +315,8 @@ class ApiListHandler(ApiHandler):
                 "offset": {"type": "string"},
                 "order_by": {"type": "string"},
               },
-            }``
+          }
+
 
         To cut it short, you need to add parameters like "field__operator"
         for every field you wish to be filtered and for every operator you
@@ -326,6 +342,7 @@ class ApiListHandler(ApiHandler):
     def post_schema_input(self):
         """
         JSON Schema to validate POST request body. Abstract.
+
         Every schema must be a dict.
 
         :return: dict
@@ -337,6 +354,7 @@ class ApiListHandler(ApiHandler):
         """
         JSON schema of our model is generated here. Basically it is used for
         Create method - list handler, method POST.
+
         Hint: Modified version of this schema can be used for Update (PUT,
         detail view).
 
@@ -367,6 +385,7 @@ class ApiListHandler(ApiHandler):
         """
         Method to get and validate offset and limit params for GET REST request.
         Total is boolean 1 or 0.
+
         Works for GET method only.
         """
         # Headers are more significant when taking limit and offset
@@ -408,7 +427,7 @@ class ApiListHandler(ApiHandler):
         * ILIKE - 'ilike', case-insensitive like operator
         * IN - 'in', classic in. Values should be separated by comma
         * ISNULL - 'isnull', operator to know if smth is equal to null. Use
-        -<fieldname>__isnull for IS NOT NULL
+          -<fieldname>__isnull for IS NOT NULL
         """
         neg = False
         if flt[0] in '-':
@@ -453,6 +472,7 @@ class ApiListHandler(ApiHandler):
     def __qs_order_by(cls, qs, value, process_value=True):
         """
         Set ORDER BY part of response.
+
         Fields are passed in a string with commas to separate values.
         '-' prefix means descending order, otherwise it is ascending order.
 
@@ -513,12 +533,10 @@ class ApiListHandler(ApiHandler):
         """
         Gets queryset and paginates it.
         It executes database query. If total amount of items should be
-        received (self.total = True),
-        queries are executed in parallel.
+        received (self.total = True), queries are executed in parallel.
 
         :param qs: peewee queryset
         :return: tuple: executed query, pagination info (dict)
-        
         :raises: In case of bad query parameters - HTTP 400.
         """
         pagination = {'offset': self.offset}
@@ -595,7 +613,7 @@ class ApiListHandler(ApiHandler):
         2. Fetches total amount of items and returns it in X-Total header.
         3. Finishes response.
 
-        :raises: In case of bad query parameters - 400.
+        :raises: In case of bad query parameters - HTTPError 400.
         """
         self.validate({k: self.get_argument(k) for k in
                        self.request.query_arguments.keys()},
@@ -629,10 +647,13 @@ class ApiListHandler(ApiHandler):
         Validates data and creates new item.
         Returns serialized object written to response.
 
-        :raises: HTTPError. 405 in case of not creatable model (there must be
+        HTTPError 405 is raised in case of not creatable model (there must be
         _create method implemented in model class).
-        400 in case of violated constraints, invalid parameters and other
-        data and integrity errors.
+
+        HTTPError 400 is raised in case of violated constraints, invalid
+        parameters and other data and integrity errors.
+
+        :raises: HTTPError 405, 400
         """
         data = self.validate(self.request.body, self.post_schema_input)
         try:
@@ -718,6 +739,7 @@ class ApiItemHandler(ApiHandler):
     async def get_item(self, item_id):
         """
         Fetches item from database by PK.
+
         :raises: HTTP 404 if no item found.
         :returns: raw object if exists.
         :rtype: ORM model instance.
@@ -734,8 +756,9 @@ class ApiItemHandler(ApiHandler):
     async def get(self, item_id):
         """
         Handles GET request.
-        Validates request first.
-        Then writes serialized object of ORM model instance to response.
+
+        1. Validates request.
+        2. Writes serialized object of ORM model instance to response.
         """
         self.validate({k: self.get_argument(k) for k in
                        self.request.query_arguments.keys()},
@@ -748,11 +771,16 @@ class ApiItemHandler(ApiHandler):
         """
         Handles PUT request.
         Validates data and updates given item.
+
         Returns serialized model.
-        :raises: 405 in case of not updatable model (there must be
+
+        Raises 405 in case of not updatable model (there must be
         _update method implemented in model class).
-        400 in case of violated constraints, invalid parameters and other
+
+        Raises 400 in case of violated constraints, invalid parameters and other
         data and integrity errors.
+
+        :raises: HTTP 405, HTTP 400.
         """
         item = await self.get_item(item_id)
 
@@ -778,8 +806,10 @@ class ApiItemHandler(ApiHandler):
     async def delete(self, item_id):
         """
         Handles DELETE request.
+
         _delete method must be defined to handle delete logic. If method
         is not defined, HTTP 405 is raised.
+
         If deletion is finished, writes to response HTTP code 200 and
         a message 'Item deleted'.
 
@@ -789,7 +819,7 @@ class ApiItemHandler(ApiHandler):
         self.validate(self.request.body or {}, self.delete_schema_input)
         item = await self.get_item(item_id)
         try:
-            # We can only delete item if model method _update() is implemented
+            # We can only delete item if model method _delete() is implemented
             await item._delete(self.application)
         except AttributeError:
             raise web.HTTPError(405,

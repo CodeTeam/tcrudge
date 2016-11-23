@@ -9,8 +9,9 @@ import peewee
 
 class BaseModel(peewee.Model):
     """
-    Basic abstract model.
+    Basic abstract ORM model.
     """
+
     async def _update(self, app, data):
         """
         By default method sets all given attributes.
@@ -40,13 +41,14 @@ class BaseModel(peewee.Model):
     @classmethod
     def to_schema(cls, excluded=None):
         """
-        Generates JSON schema from ORM model.
-
-        :param excluded: Excluded parameters. By default the only fields are
+        Generates JSON schema from ORM model. User can exclude some fields
+        from serialization, by default the only fields to exclude are
         pagination settings.
+
+        :param excluded: Excluded parameters.
         :type excluded: list or tuple.
         :return: JSON schema.
-        :rtype: dict
+        :rtype: dict.
         """
         if not excluded:
             excluded = []

@@ -1,6 +1,8 @@
 """
 Simple async CRUDL framework based on Tornado and Peewee ORM.
+
 Validates input using JSON-schema.
+
 Supports JSON and MessagePack responses.
 """
 

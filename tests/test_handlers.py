@@ -416,6 +416,26 @@ async def test_base_api_item_get(http_client, base_url, test_data):
 
 
 @pytest.mark.gen_test
+@pytest.mark.usefixtures('app_base_handlers', 'clean_table')
+@pytest.mark.parametrize('clean_table', [(ApiTestModel,)], indirect=True)
+async def test_base_api_item_get_msgpack(http_client, base_url, test_data):
+    resp = await http_client.fetch(base_url + '/test/api_test_model/%s' % test_data[0].id, headers={'Accept': 'application/x-msgpack'})
+    assert resp.code == 200
+    import msgpack
+    data = msgpack.loads(resp.body)
+    print(data)
+    assert data[b'success']
+    assert data[b'errors'] == []
+    for k, v in TEST_DATA[0].items():
+        if isinstance(v, datetime.datetime):
+            assert data[b'result'][k.encode()] == v.isoformat().encode()
+        elif isinstance(v, (bool, int)):
+            assert data[b'result'][k.encode()] == v
+        else:
+            assert data[b'result'][k.encode()] == v.encode()
+
+
+@pytest.mark.gen_test
 @pytest.mark.usefixtures('clean_table')
 @pytest.mark.parametrize('clean_table', [(ApiTestModel,)], indirect=True)
 async def test_base_api_item_put(http_client, base_url, app_base_handlers, test_data, monkeypatch):

@@ -117,12 +117,18 @@ class BaseHandler(web.RequestHandler):  # TODO implement all abstract methods
             else:
                 _data = json.loads(data.decode())
             validate(_data, schema)
-        except ValueError:
+        except ValueError as e:
             # json.loads error
             raise web.HTTPError(400, reason=self.get_response(
-                    errors=[{'code': '',
-                             'message': 'Request body is not a valid json '
-                                        'object'}]))
+                    errors=[
+                        {   
+                            'code': '',
+                            'message': 'Request body is not a valid json object',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
         except exceptions.ValidationError as exc:
             # data does not pass validation
             raise web.HTTPError(400, reason=self.get_response(
@@ -137,9 +143,15 @@ class BaseHandler(web.RequestHandler):  # TODO implement all abstract methods
         :raises: HTTPError 401
         """
         raise web.HTTPError(
-                401,
-                reason=self.get_response(
-                        errors=[{'code': '', 'message': 'Access denied'}])
+            401,
+            reason=self.get_response(
+                errors=[
+                    {
+                        'code': '', 
+                        'message': 'Access denied'
+                    }
+                ]
+            )
         )
 
     async def is_auth(self):
@@ -561,14 +573,20 @@ class ApiListHandler(ApiHandler):
                                                                     *self.prefetch_queries)
                 else:
                     items = await self.application.objects.execute(qs)
-        except (peewee.DataError, ValueError):
+        except (peewee.DataError, ValueError) as e:
             # Bad parameters
-            raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '',
-                                                                  'message':
-                                                                      'Bad '
-                                                                      'query '
-                                                                      'arguments'}]))
+            raise web.HTTPError(
+                400,
+                reason=self.get_response(
+                    errors=[
+                        {
+                            'code': '',
+                            'message':'Bad query arguments',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
         # Set number of fetched items
         pagination['limit'] = len(items)  # TODO WTF? Why limit is set?
 
@@ -591,14 +609,20 @@ class ApiListHandler(ApiHandler):
                       self.get_schema_input)
         try:
             qs = self.get_queryset()
-        except AttributeError:
+        except AttributeError as e:
             # Wrong field name in filter or order_by
-            raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '',
-                                                                  'message':
-                                                                      'Bad '
-                                                                      'query '
-                                                                      'arguments'}]))
+            raise web.HTTPError(
+                400,
+                reason=self.get_response(
+                    errors=[
+                        {
+                            'code': '',
+                            'message':'Bad query arguments',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
         items, pagination = await self._get_items(qs)
         result = []
         for m in items:
@@ -620,24 +644,36 @@ class ApiListHandler(ApiHandler):
                       self.get_schema_input)
         try:
             qs = self.get_queryset(paginate=False)
-        except AttributeError:
+        except AttributeError as e:
             # Wrong field name in filter or order_by
-            raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '',
-                                                                  'message':
-                                                                      'Bad '
-                                                                      'query '
-                                                                      'arguments'}]))
+            raise web.HTTPError(
+                400,
+                reason=self.get_response(
+                    errors=[
+                        {
+                            'code': '',
+                            'message':'Bad query arguments',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
         try:
             total_num = await self.application.objects.count(qs)
-        except (peewee.DataError, peewee.ProgrammingError, ValueError):
+        except (peewee.DataError, peewee.ProgrammingError, ValueError) as e:
             # Bad parameters
-            raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '',
-                                                                  'message':
-                                                                      'Bad '
-                                                                      'query '
-                                                                      'arguments'}]))
+            raise web.HTTPError(
+                400,
+                reason=self.get_response(
+                    errors=[
+                        {
+                            'code': '',
+                            'message':'Bad query arguments',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
         self.set_header('X-Total', total_num)
         self.finish()
 
@@ -658,19 +694,33 @@ class ApiListHandler(ApiHandler):
         data = self.validate(self.request.body, self.post_schema_input)
         try:
             item = await self.model_cls._create(self.application, data)
-        except AttributeError:
+        except AttributeError as e:
             # We can only create item if _create() model method implemented
-            raise web.HTTPError(405,
-                                reason=self.get_response(errors=[{'code': '',
-                                                                  'message':
-                                                                      'Method '
-                                                                      'not '
-                                                                      'allowed'}]))
-        except (peewee.IntegrityError, peewee.DataError):
-            raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '',
-                                                                  'message':
-                                                                      'Invalid parameters'}]))
+            raise web.HTTPError(
+                405,
+                reason=self.get_response(
+                    errors=[
+                        {
+                            'code': '',
+                            'message':'Method not allowed',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
+        except (peewee.IntegrityError, peewee.DataError) as e:
+            raise web.HTTPError(
+                400,
+                reason=self.get_response(
+                    errors=[
+                        {
+                            'code': '',
+                            'message':'Invalid parameters',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
         self.response(result=await self.serialize(item))
 
 
@@ -748,10 +798,19 @@ class ApiItemHandler(ApiHandler):
             return await self.application.objects.get(self.model_cls,
                                                       **{
                                                           self.model_cls._meta.primary_key.name: item_id})
-        except (self.model_cls.DoesNotExist, ValueError):
-            raise web.HTTPError(404,
-                                reason=self.get_response(errors=[
-                                    {'code': '', 'message': 'Item not found'}]))
+        except (self.model_cls.DoesNotExist, ValueError) as e:
+            raise web.HTTPError(
+                404,
+                reason=self.get_response(
+                    errors=[
+                        {
+                            'code': '', 
+                            'message': 'Item not found',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
 
     async def get(self, item_id):
         """
@@ -787,19 +846,33 @@ class ApiItemHandler(ApiHandler):
         data = self.validate(self.request.body, self.put_schema_input)
         try:
             item = await item._update(self.application, data)
-        except AttributeError:
+        except AttributeError as e:
             # We can only update item if model method _update is implemented
-            raise web.HTTPError(405,
-                                reason=self.get_response(errors=[{'code': '',
-                                                                  'message':
-                                                                      'Method '
-                                                                      'not '
-                                                                      'allowed'}]))
-        except (peewee.IntegrityError, peewee.DataError):
-            raise web.HTTPError(400,
-                                reason=self.get_response(errors=[{'code': '',
-                                                                  'message':
-                                                                      'Invalid parameters'}]))
+            raise web.HTTPError(
+                405,
+                reason=self.get_response(
+                    errors=[
+                        {
+                            'code': '',
+                            'message':'Method not allowed',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
+        except (peewee.IntegrityError, peewee.DataError) as e:
+            raise web.HTTPError(
+                400,
+                reason=self.get_response(
+                    errors=[
+                        {
+                            'code': '',
+                            'message':'Invalid parameters',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
 
         self.response(result=await self.serialize(item))
 
@@ -821,12 +894,18 @@ class ApiItemHandler(ApiHandler):
         try:
             # We can only delete item if model method _delete() is implemented
             await item._delete(self.application)
-        except AttributeError:
-            raise web.HTTPError(405,
-                                reason=self.get_response(errors=[{'code': '',
-                                                                  'message':
-                                                                      'Method '
-                                                                      'not '
-                                                                      'allowed'}]))
+        except AttributeError as e:
+            raise web.HTTPError(
+                405,
+                reason=self.get_response(
+                    errors=[
+                        {
+                            'code': '',
+                            'message':'Method not allowed',
+                            'detail': str(e)
+                        }
+                    ]
+                )
+            )
 
         self.response(result='Item deleted')

@@ -41,4 +41,4 @@ def response_msgpack(handler, response):
     :rtype: bytes
     """
     handler.set_header('Content-Type', 'application/x-msgpack')
-    return msgpack.packb(response)
+    return msgpack.packb(response, default=json_serial)

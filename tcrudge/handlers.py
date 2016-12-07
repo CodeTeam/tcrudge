@@ -422,7 +422,7 @@ class ApiListHandler(ApiHandler):
                                  'total', None) == '1'
 
     @classmethod
-    def __qs_filter(cls, qs, flt, value, process_value=True):
+    def qs_filter(cls, qs, flt, value, process_value=True):
         """
         Private method to set WHERE part of query.
         If required, Django-style filter is available via qs.filter()
@@ -481,7 +481,7 @@ class ApiListHandler(ApiHandler):
         return qs.where(op(fld, _v))
 
     @classmethod
-    def __qs_order_by(cls, qs, value, process_value=True):
+    def qs_order_by(cls, qs, value, process_value=True):
         """
         Set ORDER BY part of response.
 
@@ -512,7 +512,7 @@ class ApiListHandler(ApiHandler):
         Get queryset for model.
         Override this method to change logic.
 
-        By default it uses __qs_filter and __qs_order_by.
+        By default it uses qs_filter and qs_order_by.
         All arguments for WHERE clause are passed with AND condition.
         """
         # Set limit / offset parameters
@@ -522,11 +522,11 @@ class ApiListHandler(ApiHandler):
 
         # Set default filter values
         for k, v in self.default_filter.items():
-            qs = self.__qs_filter(qs, k, v, process_value=False)
+            qs = self.qs_filter(qs, k, v, process_value=False)
 
         # Set default order_by values
         for v in self.default_order_by:
-            qs = self.__qs_order_by(qs, v, process_value=False)
+            qs = self.qs_order_by(qs, v, process_value=False)
 
         for k, v in self.request.arguments.items():
             if k in self.exclude_filter_args:
@@ -534,11 +534,11 @@ class ApiListHandler(ApiHandler):
                 continue
             elif k == 'order_by':
                 # Ordering
-                qs = self.__qs_order_by(qs, v[0])
+                qs = self.qs_order_by(qs, v[0])
             else:
                 # Filtration. All arguments passed with AND condition (WHERE
                 # <...> AND <...> etc)
-                qs = self.__qs_filter(qs, k, v[0])
+                qs = self.qs_filter(qs, k, v[0])
         return qs
 
     async def _get_items(self, qs):

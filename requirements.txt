@@ -6,7 +6,7 @@ psycopg2==2.6.2
 tornado==4.4.2
 jsonschema==2.5.1
 msgpack-python==0.4.8
-git+https://github.com/mvshalamov/GenSON@v.0.4.5
+git+https://github.com/mvshalamov/GenSON@v0.4.5
 
 # Development & Testing
 py==1.4.31

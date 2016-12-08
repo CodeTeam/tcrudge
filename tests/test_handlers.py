@@ -3,12 +3,12 @@ import json
 
 import peewee
 import pytest
-from tornado.httpclient import HTTPError
 from playhouse.shortcuts import model_to_dict
+from tornado.httpclient import HTTPError
 
+from tcrudge.decorators import perm_roles
 from tcrudge.handlers import ApiListHandler, ApiItemHandler
 from tcrudge.models import BaseModel
-from tcrudge.decorators import perm_roles
 from tcrudge.utils.json import json_serial
 from tests.conftest import db
 
@@ -103,8 +103,8 @@ class ApiListTestFKHandler(ApiListHandler):
 class ApiListTestHandlerOverriddenOrderby(ApiListHandler):
     model_cls = ApiTestModel
 
-    def qs_order_by(cls, qs, value, process_value=True): # checking that we go to the overridden method
-        qs = qs.where(1!=1) # if no data - ok
+    def qs_order_by(cls, qs, value, process_value=True):  # checking that we go to the overridden method
+        qs = qs.where(1 != 1)  # if no data - ok
         return qs
 
 
@@ -166,46 +166,51 @@ def test_generate_schema():
     schema = ApiTestModel.to_schema()
     print(schema)
     assert {
-        'properties': {
-            'tf_datetime': {'type': 'string'}, 
-            'tf_decimal': {'anyOf': [{'type': 'number'}, 
-            {'pattern': '^[+-]?([0-9]*[.])?[0-9]+$', 'type': 'string'}, {'type': 'null'}]}, 
-            'tf_integer': {'anyOf': [{'type': 'integer'}, {'pattern': '^[+-]?[0-9]+$', 'type': 'string'}, {'type': 'null'}]}, 
-            'id': {'anyOf': [{'type': 'integer'}, {'pattern': '^[+-]?[0-9]+$', 'type': 'string'}]}, 
-            'tf_text': {'type': 'string'}}, 'required': ['id', 'tf_datetime', 'tf_text'], 
-            'additionalProperties': False, 'type': 'object'
-        } == schema
-    
+               'properties': {
+                   'tf_datetime': {'type': 'string'},
+                   'tf_decimal': {'anyOf': [{'type': 'number'},
+                                            {'pattern': '^[+-]?([0-9]*[.])?[0-9]+$', 'type': 'string'},
+                                            {'type': 'null'}]},
+                   'tf_integer': {'anyOf': [{'type': 'integer'}, {'pattern': '^[+-]?[0-9]+$', 'type': 'string'},
+                                            {'type': 'null'}]},
+                   'id': {'anyOf': [{'type': 'integer'}, {'pattern': '^[+-]?[0-9]+$', 'type': 'string'}]},
+                   'tf_text': {'type': 'string'}}, 'required': ['id', 'tf_datetime', 'tf_text'],
+               'additionalProperties': False, 'type': 'object'
+           } == schema
+
     schema1 = ApiTestModel.to_schema(excluded=['id'])
     assert {
-        'properties': {
-            'tf_datetime': {'type': 'string'}, 
-            'tf_decimal': {'anyOf': [{'type': 'number'}, 
-            {'pattern': '^[+-]?([0-9]*[.])?[0-9]+$', 'type': 'string'}, {'type': 'null'}]}, 
-            'tf_integer': {'anyOf': [{'type': 'integer'}, {'pattern': '^[+-]?[0-9]+$', 'type': 'string'}, {'type': 'null'}]}, 
-            'tf_text': {'type': 'string'}}, 'required': ['tf_datetime', 'tf_text'], 
-            'additionalProperties': False, 'type': 'object'
-        } == schema1
+               'properties': {
+                   'tf_datetime': {'type': 'string'},
+                   'tf_decimal': {'anyOf': [{'type': 'number'},
+                                            {'pattern': '^[+-]?([0-9]*[.])?[0-9]+$', 'type': 'string'},
+                                            {'type': 'null'}]},
+                   'tf_integer': {'anyOf': [{'type': 'integer'}, {'pattern': '^[+-]?[0-9]+$', 'type': 'string'},
+                                            {'type': 'null'}]},
+                   'tf_text': {'type': 'string'}}, 'required': ['tf_datetime', 'tf_text'],
+               'additionalProperties': False, 'type': 'object'
+           } == schema1
 
 
 @pytest.mark.gen_test
-async def test_perm_roles_decorator(http_client, base_url,app_base_handlers, monkeypatch):
+async def test_perm_roles_decorator(http_client, base_url, app_base_handlers, monkeypatch):
     with pytest.raises(HTTPError) as e:
         await http_client.fetch(base_url + '/test/api_test_model_dec/', method='GET')
 
     async def success_get_roles(self):
         return ['admin']
+
     monkeypatch.setattr(DecTestHandler, 'get_roles', success_get_roles)
     res = await http_client.fetch(base_url + '/test/api_test_model_dec/', method='GET')
     assert res.code == 200
 
     async def error_is_auth(self):
         return False
+
     monkeypatch.setattr(DecTestHandler, 'is_auth', error_is_auth)
 
     with pytest.raises(HTTPError) as e:
         await http_client.fetch(base_url + '/test/api_test_model_dec/', method='GET')
-
 
 
 @pytest.mark.gen_test
@@ -320,12 +325,11 @@ async def test_base_api_list_force_total_query(http_client, base_url):
 @pytest.mark.parametrize('url_param', [('tf_bad_field=Some_data',),
                                        ('tf_integer=ABC',),
                                        ])
-@pytest.mark.parametrize('request_type', ['GET', 'HEAD'])
-async def test_base_api_list_filter_bad_request(http_client, base_url, url_param, request_type):
+async def test_base_api_list_filter_bad_request(http_client, base_url, url_param):
     with pytest.raises(HTTPError) as e:
-        await http_client.fetch(base_url + '/test/api_test_model/?%s' % url_param, method=request_type)
+        await http_client.fetch(base_url + '/test/api_test_model/?%s' % url_param)
     assert e.value.code == 400
-    data = json.loads(e.value.message)
+    data = json.loads(e.value.response.body.decode())
     assert data['result'] is None
     assert not data['success']
     assert len(data['errors']) == 1
@@ -335,14 +339,13 @@ async def test_base_api_list_filter_bad_request(http_client, base_url, url_param
 @pytest.mark.gen_test
 @pytest.mark.usefixtures('app_base_handlers')
 @pytest.mark.parametrize('url_param', [
-                                       ('order_by=some_bad_field',),
-                                       ])
-@pytest.mark.parametrize('request_type', ['GET', 'HEAD'])
-async def test_base_api_list_filter_bad_request1(http_client, base_url, url_param, request_type):
+    ('order_by=some_bad_field',),
+])
+async def test_base_api_list_filter_bad_request1(http_client, base_url, url_param):
     with pytest.raises(HTTPError) as e:
-        await http_client.fetch(base_url + '/test/api_test_model/?%s' % url_param, method=request_type)
+        await http_client.fetch(base_url + '/test/api_test_model/?%s' % url_param)
     assert e.value.code == 400
-    data = json.loads(e.value.message)
+    data = json.loads(e.value.response.body.decode())
     assert data['result'] is None
     assert not data['success']
     assert len(data['errors']) == 1
@@ -359,7 +362,7 @@ async def test_base_api_list_bad_request(http_client, base_url, body, message):
     with pytest.raises(HTTPError) as e:
         await http_client.fetch(base_url + '/test/api_test_model/', method='POST', body=body)
     assert e.value.code == 400
-    data = json.loads(e.value.message)
+    data = json.loads(e.value.response.body.decode())
     assert data['result'] is None
     assert not data['success']
     assert len(data['errors']) == 1
@@ -377,7 +380,7 @@ async def test_base_api_list_bad_fk(http_client, base_url):
     with pytest.raises(HTTPError) as e:
         await http_client.fetch(base_url + '/test/api_test_model_fk/', method='POST', body=json.dumps(data).encode())
     assert e.value.code == 400
-    data = json.loads(e.value.message)
+    data = json.loads(e.value.response.body.decode())
     assert data['result'] is None
     assert not data['success']
     assert len(data['errors']) == 1
@@ -428,7 +431,8 @@ async def test_base_api_item_get(http_client, base_url, test_data):
 @pytest.mark.usefixtures('app_base_handlers', 'clean_table')
 @pytest.mark.parametrize('clean_table', [(ApiTestModel,)], indirect=True)
 async def test_base_api_item_get_msgpack(http_client, base_url, test_data):
-    resp = await http_client.fetch(base_url + '/test/api_test_model/%s' % test_data[0].id, headers={'Accept': 'application/x-msgpack'})
+    resp = await http_client.fetch(base_url + '/test/api_test_model/%s' % test_data[0].id,
+                                   headers={'Accept': 'application/x-msgpack'})
     assert resp.code == 200
     import msgpack
     data = msgpack.loads(resp.body)
@@ -449,8 +453,8 @@ async def test_base_api_item_get_msgpack(http_client, base_url, test_data):
 @pytest.mark.parametrize('clean_table', [(ApiTestModel,)], indirect=True)
 async def test_base_api_list_overridden_orderby(http_client, base_url):
     data = TEST_DATA[0]
-    resp = await http_client.fetch(base_url + '/test/api_test_model/', method='POST',
-                                   body=json.dumps(data, default=json_serial).encode())
+    await http_client.fetch(base_url + '/test/api_test_model/', method='POST',
+                            body=json.dumps(data, default=json_serial).encode())
     res = await http_client.fetch(base_url + '/test/api_test_model_overridden_orderby/?order_by=ololo')
     assert res.code == 200
     data = json.loads(res.body.decode())
@@ -563,8 +567,7 @@ async def test_base_api_item_put_405(http_client, base_url, test_data, monkeypat
 @pytest.mark.gen_test
 @pytest.mark.usefixtures('clean_table', 'app_base_handlers', 'test_data')
 @pytest.mark.parametrize('clean_table', [(ApiTestModel,)], indirect=True)
-@pytest.mark.parametrize('request_type', ['GET', 'HEAD'])
-async def test_api_list_validate_get_head(http_client, base_url, monkeypatch, request_type):
+async def test_api_list_validate_get(http_client, base_url, monkeypatch):
     monkeypatch.setattr(ApiListTestHandler, 'get_schema_input',
                         {
                             'type': 'object',
@@ -572,9 +575,9 @@ async def test_api_list_validate_get_head(http_client, base_url, monkeypatch, re
                             'properties': {}
                         })
     with pytest.raises(HTTPError) as e:
-        await http_client.fetch(base_url + '/test/api_test_model/?a=1', method=request_type)
+        await http_client.fetch(base_url + '/test/api_test_model/?a=1')
     assert e.value.code == 400
-    data = json.loads(e.value.message)
+    data = json.loads(e.value.response.body.decode())
     assert not data['success']
     assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == 'Validation failed'

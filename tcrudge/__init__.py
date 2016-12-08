@@ -6,5 +6,5 @@ Validates input using JSON-schema.
 Supports JSON and MessagePack responses.
 """
 
-__version__ = "0.6.8"
+__version__ = "0.6.9"
 

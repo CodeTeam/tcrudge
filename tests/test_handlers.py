@@ -100,6 +100,14 @@ class ApiListTestFKHandler(ApiListHandler):
     model_cls = ApiTestModelFK
 
 
+class ApiListTestHandlerOverriddenOrderby(ApiListHandler):
+    model_cls = ApiTestModel
+
+    def qs_order_by(cls, qs, value, process_value=True): # checking that we go to the overridden method
+        qs = qs.where(1!=1) # if no data - ok
+        return qs
+
+
 class ApiItemTestFKHandler(ApiItemHandler):
     model_cls = ApiTestModelFK
 
@@ -123,6 +131,7 @@ def app_base_handlers(request, app, async_db):
     app.add_handlers(".*$", [(r'^/test/api_test_model_fk/([^/]+)/?$', ApiItemTestFKHandler)])
     app.add_handlers(".*$", [(r'^/test/api_test_model_prefetch/?$', ApiListTestHandlerPrefetch)])
     app.add_handlers(".*$", [(r'^/test/api_test_model_dec/?$', DecTestHandler)])
+    app.add_handlers(".*$", [(r'^/test/api_test_model_overridden_orderby/?$', ApiListTestHandlerOverriddenOrderby)])
 
     with async_db.allow_sync():
         ApiTestModel.create_table()
@@ -433,6 +442,20 @@ async def test_base_api_item_get_msgpack(http_client, base_url, test_data):
             assert data[b'result'][k.encode()] == v
         else:
             assert data[b'result'][k.encode()] == v.encode()
+
+
+@pytest.mark.gen_test
+@pytest.mark.usefixtures('clean_table')
+@pytest.mark.parametrize('clean_table', [(ApiTestModel,)], indirect=True)
+async def test_base_api_list_overridden_orderby(http_client, base_url):
+    data = TEST_DATA[0]
+    resp = await http_client.fetch(base_url + '/test/api_test_model/', method='POST',
+                                   body=json.dumps(data, default=json_serial).encode())
+    res = await http_client.fetch(base_url + '/test/api_test_model_overridden_orderby/?order_by=ololo')
+    assert res.code == 200
+    data = json.loads(res.body.decode())
+    assert data['result'] == {'items': []}
+    assert data['success']
 
 
 @pytest.mark.gen_test

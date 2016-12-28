@@ -103,7 +103,7 @@ class BaseHandler(web.RequestHandler):
             self.write(getattr(exc_info[1], 'body', None))
         self.finish()
 
-    def validate(self, data, schema):
+    async def validate(self, data, schema):
         """
         Method to validate parameters.
         Raises HTTPError(400) with error info for invalid data.
@@ -617,9 +617,8 @@ class ApiListHandler(ApiHandler):
 
         :raises: In case of bad query parameters - HTTP 400.
         """
-        self.validate({k: self.get_argument(k) for k in
-                       self.request.query_arguments.keys()},
-                      self.get_schema_input)
+        await self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()},
+                            self.get_schema_input)
         try:
             qs = self.get_queryset()
         except AttributeError as e:
@@ -652,9 +651,8 @@ class ApiListHandler(ApiHandler):
 
         :raises: In case of bad query parameters - HTTPError 400.
         """
-        self.validate({k: self.get_argument(k) for k in
-                       self.request.query_arguments.keys()},
-                      self.get_schema_input)
+        await self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()},
+                            self.get_schema_input)
         try:
             qs = self.get_queryset(paginate=False)
         except AttributeError as e:
@@ -686,7 +684,7 @@ class ApiListHandler(ApiHandler):
 
         :raises: HTTPError 405, 400
         """
-        data = self.validate(self.request.body, self.post_schema_input)
+        data = await self.validate(self.request.body, self.post_schema_input)
         try:
             item = await self.model_cls._create(self.application, data)
         except AttributeError as e:
@@ -814,9 +812,8 @@ class ApiItemHandler(ApiHandler):
         1. Validates request.
         2. Writes serialized object of ORM model instance to response.
         """
-        self.validate({k: self.get_argument(k) for k in
-                       self.request.query_arguments.keys()},
-                      self.get_schema_input)
+        await self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()},
+                            self.get_schema_input)
         item = await self.get_item(item_id)
 
         self.response(result=await self.serialize(item))
@@ -838,7 +835,7 @@ class ApiItemHandler(ApiHandler):
         """
         item = await self.get_item(item_id)
 
-        data = self.validate(self.request.body, self.put_schema_input)
+        data = await self.validate(self.request.body, self.put_schema_input)
         try:
             item = await item._update(self.application, data)
         except AttributeError as e:
@@ -884,7 +881,7 @@ class ApiItemHandler(ApiHandler):
         :raises: HTTPError 405 if model object is not deletable.
         """
         # DELETE usually does not have body to validate.
-        self.validate(self.request.body or {}, self.delete_schema_input)
+        await self.validate(self.request.body or {}, self.delete_schema_input)
         item = await self.get_item(item_id)
         try:
             # We can only delete item if model method _delete() is implemented

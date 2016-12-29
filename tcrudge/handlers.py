@@ -103,7 +103,7 @@ class BaseHandler(web.RequestHandler):
             self.write(getattr(exc_info[1], 'body', None))
         self.finish()
 
-    async def validate(self, data, schema):
+    async def validate(self, data, schema, **kwargs):
         """
         Method to validate parameters.
         Raises HTTPError(400) with error info for invalid data.
@@ -723,6 +723,10 @@ class ApiItemHandler(ApiHandler):
     Supports R, U, D from CRUDL.
     """
 
+    def __init__(self, *args, **kwargs):
+        super(ApiItemHandler, self).__init__(*args, **kwargs)
+        self._instance = None
+
     @property
     def get_schema_input(self):
         """
@@ -782,28 +786,30 @@ class ApiItemHandler(ApiHandler):
     async def get_item(self, item_id):
         """
         Fetches item from database by PK.
+        Result is cached in self._instance for multiple calls
 
         :raises: HTTP 404 if no item found.
         :returns: raw object if exists.
         :rtype: ORM model instance.
         """
-        try:
-            return await self.application.objects.get(self.model_cls,
-                                                      **{
-                                                          self.model_cls._meta.primary_key.name: item_id})
-        except (self.model_cls.DoesNotExist, ValueError) as e:
-            raise HTTPError(
-                404,
-                body=self.get_response(
-                    errors=[
-                        {
-                            'code': '',
-                            'message': 'Item not found',
-                            'detail': str(e)
-                        }
-                    ]
+        if not self._instance:
+            try:
+                self._instance = await self.application.objects.get(self.model_cls,
+                                                                    **{self.model_cls._meta.primary_key.name: item_id})
+            except (self.model_cls.DoesNotExist, ValueError) as e:
+                raise HTTPError(
+                    404,
+                    body=self.get_response(
+                        errors=[
+                            {
+                                'code': '',
+                                'message': 'Item not found',
+                                'detail': str(e)
+                            }
+                        ]
+                    )
                 )
-            )
+        return self._instance
 
     async def get(self, item_id):
         """
@@ -813,7 +819,7 @@ class ApiItemHandler(ApiHandler):
         2. Writes serialized object of ORM model instance to response.
         """
         await self.validate({k: self.get_argument(k) for k in self.request.query_arguments.keys()},
-                            self.get_schema_input)
+                            self.get_schema_input, item_id=item_id)
         item = await self.get_item(item_id)
 
         self.response(result=await self.serialize(item))
@@ -835,7 +841,7 @@ class ApiItemHandler(ApiHandler):
         """
         item = await self.get_item(item_id)
 
-        data = await self.validate(self.request.body, self.put_schema_input)
+        data = await self.validate(self.request.body, self.put_schema_input, item_id=item_id)
         try:
             item = await item._update(self.application, data)
         except AttributeError as e:
@@ -881,7 +887,7 @@ class ApiItemHandler(ApiHandler):
         :raises: HTTPError 405 if model object is not deletable.
         """
         # DELETE usually does not have body to validate.
-        await self.validate(self.request.body or {}, self.delete_schema_input)
+        await self.validate(self.request.body or {}, self.delete_schema_input, item_id=item_id)
         item = await self.get_item(item_id)
         try:
             # We can only delete item if model method _delete() is implemented

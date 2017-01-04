@@ -100,7 +100,7 @@ class BaseHandler(web.RequestHandler):
         else:
             # exc_info[1] - HTTPError instance
             # Finish request with exception body or exception reason
-            self.write(getattr(exc_info[1], 'body', None))
+            self.write(getattr(exc_info[1], 'body', self._reason))
         self.finish()
 
     async def validate(self, data, schema, **kwargs):

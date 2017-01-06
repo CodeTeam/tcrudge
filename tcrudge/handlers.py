@@ -13,7 +13,7 @@ import traceback
 from abc import ABCMeta, abstractmethod
 
 import peewee
-from jsonschema import validate, exceptions
+from jsonschema.validators import validator_for
 from playhouse.shortcuts import model_to_dict
 from tornado import web
 from tornado.gen import multi
@@ -113,40 +113,34 @@ class BaseHandler(web.RequestHandler):
           (http://json-schema.org/latest/json-schema-validation.html)
         :return: None if data is not valid. Else dict(data)
         """
-        try:
-            # Get and parse arguments
-            if isinstance(data, dict):
-                _data = data  # pragma: no cover
-            else:
+        # Get and parse arguments
+        if isinstance(data, dict):
+            _data = data  # pragma: no cover
+        else:
+            try:
                 _data = json.loads(data.decode())
-            validate(_data, schema)
-        except ValueError as e:
-            # json.loads error
-            raise HTTPError(
-                400,
-                body=self.get_response(
-                    errors=[
-                        {
-                            'code': '',
-                            'message': 'Request body is not a valid json object',
-                            'detail': str(e)
-                        }
-                    ]
+            except ValueError as e:
+                # json.loads error
+                raise HTTPError(
+                    400,
+                    body=self.get_response(
+                        errors=[
+                            {
+                                'code': '',
+                                'message': 'Request body is not a valid json object',
+                                'detail': str(e)
+                            }
+                        ]
+                    )
                 )
-            )
-        except exceptions.ValidationError as exc:
+        v = validator_for(schema)(schema)
+        errors = []
+        for error in v.iter_errors(_data):
+            # error is an instance of jsonschema.exceptions.ValidationError
+            errors.append({'code': '', 'message': 'Validation failed', 'detail': error.message})
+        if errors:
             # data does not pass validation
-            raise HTTPError(
-                400,
-                body=self.get_response(
-                    errors=[
-                        {'code': '',
-                         'message': 'Validation failed',
-                         'detail': str(exc)
-                         }
-                    ]
-                )
-            )
+            raise HTTPError(400, body=self.get_response(errors=errors))
         return _data
 
     async def bad_permissions(self):

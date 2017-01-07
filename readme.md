@@ -34,6 +34,7 @@ For detailed example see tests (also, tests are available in Docker container wi
 
 You can run tests in docker container only.
 You'll need docker and docker-compose.
+
 1. Go to project root directory
 2. Run docker-compose up, it builts and runs containers.
 3. Go to tcrudge container bash: docker exec -ti tcrudge_tcrudge_1 bash

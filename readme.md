@@ -10,7 +10,7 @@ Full documentation (http://tcrudge.readthedocs.io/en/latest/)
 
 # What is it?
 Simple configurable framework to create CRUDL (Create, Read, Update, Delete, List) for models
-
+TCrudge is under heavy development - tons of bugs are expected. You can use it in production, but API can be broken at any moment.
 
 # Why?
 Tornado is fast. Peewee is great. REST is wonderful.
@@ -51,9 +51,9 @@ You'll need docker and docker-compose.
 2. Models are fat. _create, _update, _delete methods are supposed to provide different logic on CRUD operations
 3. Django-style filtering in list request: ```__gt```, ```__gte```, ```__lt```, ```__lte```, ```__in```, ```__isnull```, ```__like```, ```__ilike```, ```__ne``` are supported. Use ```/?model_field__<filter_type>=<filter_condition>``` for complex or ```/?model_field=<filter_condition>``` for simple filtering.
 4. Django-style order by: use ```/?order_by=<field_1>,<field_2>``` etc
-5. Serialization is provided by Peewee: playhouse.shortcuts.model_to_dict. recurse, exclude and max_depth params are implemented in base class for better experience. If you want to serialize recurse foreign keys, do not forget to modify get_queryset method (see Peewee docs for details, use ```.join()``` and ```.select()```)
-6. Validation is provided out-of-the box via jsonschema. Just set input schemas for base methods (e.g. post_schema_input, get_schema_input etc). Request query is validated for GET and HEAD. Request body is validated for *POST*, *PUT* and *DELETE*.
-7. Pagination is activated by default for lists. Use default_limit and mac_limit for customization. Pagination params are set through headers (X-Limit, X-Offset) or query: ```/?limit=100&offset=5```. Total amount of items is not returned by default. HEAD request should be sent or total param set to 1: ```/?total=1```
+5. Serialization is provided by Peewee: ```playhouse.shortcuts.model_to_dict```. ```recurse```, ```exclude``` and ```max_depth``` params are implemented in base class for better experience. If you want to serialize recurse foreign keys, do not forget to modify ```get_queryset``` method (see Peewee docs for details, use ```.join()``` and ```.select()```)
+6. Validation is provided out-of-the box via jsonschema. Just set input schemas for base methods (e.g. post_schema_input, get_schema_input etc). Request query is validated for *GET* and *HEAD*. Request body is validated for *POST*, *PUT* and *DELETE*.
+7. Pagination is activated by default for lists. Use ```default_limit``` and ```max_limit``` for customization. Pagination params are set through headers (X-Limit, X-Offset) or query: ```/?limit=100&offset=5```. Total amount of items is not returned by default. HEAD request should be sent or total param set to 1: ```/?total=1```
 8. List handler supports default filtering and ordering. Use ```default_filter``` and ```default_order_by``` class properties.
 
 # Example

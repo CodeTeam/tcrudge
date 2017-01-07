@@ -27,7 +27,7 @@ tcrudge is distributed via pypi: https://pypi.python.org/pypi/tcrudge/
 pip install tcrudge
 ```
 
-You can manually install latest version via Github:
+You can manually install latest version via GitHub:
 ```
 pip install git+https://github.com/CodeTeam/tcrudge.git
 ```

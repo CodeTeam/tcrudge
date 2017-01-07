@@ -9,7 +9,7 @@ TCrudge - simple async CRUDL based on Tornado and Peewee ORM (Peewee Async)
 Full documentation (http://tcrudge.readthedocs.io/en/latest/)
 
 # What is it?
-Simple configurable framework to create CRUDL (Create, Read, Update, Delete, List) for models
+Simple configurable framework to create CRUDL (Create, Read, Update, Delete, List) for models.
 TCrudge is under heavy development - tons of bugs are expected. You can use it in production, but API can be broken at any moment.
 
 # Why?

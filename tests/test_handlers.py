@@ -365,8 +365,8 @@ async def test_base_api_list_bad_request(http_client, base_url, body, message):
     data = json.loads(e.value.response.body.decode())
     assert data['result'] is None
     assert not data['success']
-    assert len(data['errors']) == 1
-    assert data['errors'][0]['message'] == message
+    for error in data['errors']:
+        assert error['message'] == message
 
 
 @pytest.mark.gen_test

@@ -9,13 +9,25 @@ from setuptools import setup
 try:
     from pypandoc import convert
 
+
     def read_md(f):
         return convert(f, 'rst')
 except ImportError:
     print("warning: pypandoc module not found, could not convert Markdown to RST")
 
+
     def read_md(f):
         return open(f, 'r', encoding='utf-8').read()
+
+install_requires = [
+    'aiopg==0.10.0',
+    'peewee==2.8.3',
+    'peewee-async==0.5.5',
+    'psycopg2==2.6.2',
+    'tornado==4.4.2',
+    'jsonschema==2.5.1',
+    'msgpack-python==0.4.8',
+]
 
 
 def get_version(package):
@@ -23,7 +35,7 @@ def get_version(package):
     Return package version as listed in `__version__` in `init.py`.
     """
     init_py = open(os.path.join(package, '__init__.py')).read()
-    return re.search("__version__ = ['\"]([^'\"]+)['\"]", init_py).group(1)
+    return re.search(r"^__version__\W*=\W*'([\d.abrcdev]+)'", init_py).group(1)
 
 
 def get_packages(package):
@@ -74,7 +86,6 @@ if sys.argv[-1] == 'publish':
     shutil.rmtree('tcrudge.egg-info')
     sys.exit()
 
-
 setup(
     name='tcrudge',
     version=version,
@@ -86,7 +97,7 @@ setup(
     author_email='saborisov@sberned.ru',
     packages=get_packages('tcrudge'),
     package_data=get_package_data('tcrudge'),
-    install_requires=[],
+    install_requires=install_requires,
     zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',

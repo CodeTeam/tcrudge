@@ -7,8 +7,6 @@ tornado==4.4.2
 jsonschema==2.5.1
 msgpack-python==0.4.8
 
-git+https://github.com/mvshalamov/GenSON@v0.4.5
-
 # Development & Testing
 py==1.4.31
 pytest==3.0.2

@@ -27,11 +27,6 @@ install_requires = [
     'tornado==4.4.2',
     'jsonschema==2.5.1',
     'msgpack-python==0.4.8',
-    'genson==0.4.5',
-]
-
-dependency_links = [
-    'git+https://github.com/mvshalamov/GenSON@v0.4.5#egg=genson-0.4.5',
 ]
 
 extras_require = {'tests': [
@@ -111,7 +106,6 @@ setup(
     package_data=get_package_data('tcrudge'),
     install_requires=install_requires,
     extras_require=extras_require,
-    dependency_links=dependency_links,
     zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',

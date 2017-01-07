@@ -3,8 +3,9 @@ Module contains basic model class.
 """
 
 import operator
-import genson
 import peewee
+
+from tcrudge.utils.schema import Schema
 
 
 class BaseModel(peewee.Model):
@@ -52,7 +53,7 @@ class BaseModel(peewee.Model):
         """
         if not excluded:
             excluded = []
-        schema = genson.Schema.create_default_schema()
+        schema = Schema.create_default_schema()
         excluded += getattr(cls._meta, "excluded", [])
         for field, type_field in cls._meta.fields.items():
             if field not in excluded:

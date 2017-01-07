@@ -27,7 +27,10 @@ install_requires = [
     'tornado==4.4.2',
     'jsonschema==2.5.1',
     'msgpack-python==0.4.8',
-    'git+https://github.com/mvshalamov/GenSON@v0.4.5',
+]
+
+dependency_links = [
+    'https://github.com/mvshalamov/GenSON@v0.4.5#egg=genson-0.4.5',
 ]
 
 extras_require = {'tests': [
@@ -39,12 +42,20 @@ extras_require = {'tests': [
     'coverage==4.2'
 ], }
 
+
 def get_version(package):
     """
     Return package version as listed in `__version__` in `init.py`.
     """
-    init_py = open(os.path.join(package, '__init__.py')).read()
-    return re.search(r"^__version__\W*=\W*'([\d.abrcdev]+)'", init_py).group(1)
+    regexp = re.compile(r"^__version__\W*=\W*'([\d.abrcdev]+)'")
+    init_py = os.path.join(package, '__init__.py')
+    with open(init_py) as f:
+        for line in f:
+            match = regexp.match(line)
+            if match is not None:
+                return match.group(1)
+        else:
+            raise RuntimeError('Cannot find version in tcrudge/__init__.py')
 
 
 def get_packages(package):
@@ -77,11 +88,10 @@ version = get_version('tcrudge')
 if sys.argv[-1] == 'publish':
     try:
         import pypandoc
+        pypandoc.download_pandoc()
     except ImportError:
         print("pypandoc not installed.\nUse `pip install pypandoc`.\nExiting.")
-    if os.system("pip freeze | grep wheel"):
-        print("wheel not installed.\nUse `pip install wheel`.\nExiting.")
-        sys.exit()
+        sys.exit(1)
     if os.system("pip freeze | grep twine"):
         print("twine not installed.\nUse `pip install twine`.\nExiting.")
         sys.exit()
@@ -108,6 +118,7 @@ setup(
     package_data=get_package_data('tcrudge'),
     install_requires=install_requires,
     extras_require=extras_require,
+    dependency_links=dependency_links,
     zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',

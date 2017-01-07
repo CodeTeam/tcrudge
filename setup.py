@@ -27,6 +27,7 @@ install_requires = [
     'tornado==4.4.2',
     'jsonschema==2.5.1',
     'msgpack-python==0.4.8',
+    'git+https://github.com/mvshalamov/GenSON@v0.4.5',
 ]
 
 

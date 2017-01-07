@@ -7,4 +7,3 @@ Supports JSON and MessagePack responses.
 """
 
 __version__ = '0.8.3'
-

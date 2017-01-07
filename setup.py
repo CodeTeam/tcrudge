@@ -7,17 +7,17 @@ from io import open
 from setuptools import setup
 
 try:
-    from pypandoc import convert
-
-
-    def read_md(f):
-        return convert(f, 'rst')
+    import pypandoc
 except ImportError:
-    print("warning: pypandoc module not found, could not convert Markdown to RST")
+    print("pypandoc not installed.\nUse `pip install pypandoc`.\nExiting.")
+    sys.exit(1)
 
 
-    def read_md(f):
-        return open(f, 'r', encoding='utf-8').read()
+def read_md(f):
+    """
+    Converts md file to rst text
+    """
+    return pypandoc.convert(f, 'rst')
 
 install_requires = [
     'aiopg==0.10.0',
@@ -86,12 +86,7 @@ def get_package_data(package):
 version = get_version('tcrudge')
 
 if sys.argv[-1] == 'publish':
-    try:
-        import pypandoc
-        pypandoc.download_pandoc()
-    except ImportError:
-        print("pypandoc not installed.\nUse `pip install pypandoc`.\nExiting.")
-        sys.exit(1)
+    pypandoc.download_pandoc()
     if os.system("pip freeze | grep twine"):
         print("twine not installed.\nUse `pip install twine`.\nExiting.")
         sys.exit()

@@ -22,7 +22,12 @@ Tornado is fast. Peewee is great. REST is wonderful.
 * Modified JSON schema generator by [Shalamov Maxim] (https://github.com/mvshalamov) (https://github.com/mvshalamov/GenSON)
 
 # Installation
-tcrudge is not distributed by pip (https://pypi.python.org/pypi). So use installation via GitHub:
+tcrudge is distributed via pypi: https://pypi.python.org/pypi/tcrudge/
+```
+pip install tcrudge
+```
+
+You can manually install latest version via Github:
 ```
 pip install git+https://github.com/CodeTeam/tcrudge.git
 ```
@@ -40,12 +45,11 @@ You'll need docker and docker-compose.
 3. Go to tcrudge container bash: docker exec -ti tcrudge_tcrudge_1 bash
 4. Run: DATABASE_URL=postgresql://user:dbpass@pg/test pytest
 
-
 # Features?
 
 1. DELETE request on item is disabled by default. To enable it implement _delete method in your model.
 2. Models are fat. _create, _update, _delete methods are supposed to provide different logic on CRUD operations
-3. Django-style filtering in list request: *__gt*, *__gte*, *__lt*, *__lte*, *__in*, *__isnull*, *__like*, *__ilike*, *__ne* are supported. Use ```/?model_field__<filter_type>=<filter_condition>``` for complex or ```/?model_field=<filter_condition>``` for simple filtering.
+3. Django-style filtering in list request: ```__gt```, ```__gte```, ```__lt```, ```__lte```, ```__in```, ```__isnull```, ```__like```, ```__ilike```, ```__ne``` are supported. Use ```/?model_field__<filter_type>=<filter_condition>``` for complex or ```/?model_field=<filter_condition>``` for simple filtering.
 4. Django-style order by: use ```/?order_by=<field_1>,<field_2>``` etc
 5. Serialization is provided by Peewee: playhouse.shortcuts.model_to_dict. recurse, exclude and max_depth params are implemented in base class for better experience. If you want to serialize recurse foreign keys, do not forget to modify get_queryset method (see Peewee docs for details, use ```.join()``` and ```.select()```)
 6. Validation is provided out-of-the box via jsonschema. Just set input schemas for base methods (e.g. post_schema_input, get_schema_input etc). Request query is validated for GET and HEAD. Request body is validated for *POST*, *PUT* and *DELETE*.
@@ -54,66 +58,68 @@ You'll need docker and docker-compose.
 
 # Example
 
-## Application
-
 ```python
+import asyncio
+
+import peewee
+import peewee_async
+from playhouse.db_url import parse
+from tornado import web
+from tornado.ioloop import IOLoop
+
+from tcrudge.handlers import ApiListHandler, ApiItemHandler
+from tcrudge.models import BaseModel
+
+# Configure Tornado to use asyncio
+IOLoop.configure('tornado.platform.asyncio.AsyncIOMainLoop')
+
+# Create database
+DATABASE_URL = 'postgresql://user:dbpass@pg/test'
+
+db_param = parse(DATABASE_URL)
+
+db = peewee_async.PooledPostgresqlDatabase(**db_param)
+
+
+# CRUDL Model
+class Company(BaseModel):
+    name = peewee.TextField()
+    active = peewee.BooleanField()
+
+    class Meta:
+        database = db
+
+
+# CL Handler
+class CompanyDetailHandler(ApiItemHandler):
+    model_cls = Company
+
+
+# RUD Handler
+class CompanyListHandler(ApiListHandler):
+    model_cls = Company
+    default_filter = {'active': True}
+
+
 app_handlers = [
     ('^/api/v1/companies/', CompanyListHandler),
     ('^/api/v1/companies/([^/]+)/', CompanyDetailHandler)
 ]
 
-application = web.Application(app_handlers, debug=settings.DEBUG, template_path=settings.TEMPLATE_PATH)
+application = web.Application(app_handlers)
 
-
-#ORM
+# ORM
 application.objects = peewee_async.Manager(db)
 
+with application.objects.allow_sync():
+    # Creates table, if not exists
+    Company.create_table(True)
 
-def runserver():
-    if settings.DEBUG:
-        application.listen(settings.PORT, '0.0.0.0')
-    else:
-        server = HTTPServer(application)
-        server.bind(settings.PORT)
-        server.start(0)
-    loop = asyncio.get_event_loop()
-    loop.run_forever()
+application.listen(8080, '0.0.0.0')
+loop = asyncio.get_event_loop()
+# Start application
+loop.run_forever()
 
-```
-
-## Model 
-
-> DB table must exist; Fields in table must correspond to model fields
-
-```python
-class Company(CustomBaseModel):
-    company_inn = peewee.TextField()
-    active = peewee.BooleanField()
-    created_at = peewee.DateTimeField()
-    updated_at = peewee.DateTimeField()
-
-    class Meta:
-        db_table = "company"
-```
-
-## Handlers
-
-```python
-class CompanyDetailHandler(ApiItemHandler):
-    model_cls = Company
-
-    get_schema_input = GET_SCHEMA
-    put_schema_input = UPDATE_SCHEMA
-    delete_schema_input = DELETE_SCHEMA
-
-
-class CompanyListHandler(ApiListHandler):
-    model_cls = Company
-
-    post_schema_input = INSERT_SCHEMA
-    get_schema_input = GET_SCHEMA
-
-    default_filter = {'active': True}
 ```
 
 # Сontributors

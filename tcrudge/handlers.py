@@ -251,10 +251,8 @@ class ApiListHandler(ApiHandler):
     Other pagination parameters are:
 
     * limit - a positive number of items to show on a single page, int.
-    * offset - a positive int to define the position in result set to start
-    with.
-    * total - A boolean to define total amount of items to be put in result set
-      or not. 1 or 0.
+    * offset - a positive int to define the position in result set to start with.
+    * total - A boolean to define total amount of items to be put in result set or not. 1 or 0.
 
     Those parameters can be sent as either GET parameters or HTTP headers.
     HTTP headers are more significant during parameters processing, but GET
@@ -445,8 +443,7 @@ class ApiListHandler(ApiHandler):
         * LIKE - 'like', classic like operator
         * ILIKE - 'ilike', case-insensitive like operator
         * IN - 'in', classic in. Values should be separated by comma
-        * ISNULL - 'isnull', operator to know if smth is equal to null. Use
-          -<fieldname>__isnull for IS NOT NULL
+        * ISNULL - 'isnull', operator to know if smth is equal to null. Use -<fieldname>__isnull for IS NOT NULL
         """
         neg = False
         if flt[0] in '-':

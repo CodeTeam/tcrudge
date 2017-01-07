@@ -30,6 +30,14 @@ install_requires = [
     'git+https://github.com/mvshalamov/GenSON@v0.4.5',
 ]
 
+extras_require = {'tests': [
+    'py==1.4.31',
+    'pytest==3.0.2',
+    'pytest-cov==2.3.1',
+    'pytest-env==0.6.0',
+    'pytest-tornado==0.4.5',
+    'coverage==4.2'
+], }
 
 def get_version(package):
     """
@@ -99,6 +107,7 @@ setup(
     packages=get_packages('tcrudge'),
     package_data=get_package_data('tcrudge'),
     install_requires=install_requires,
+    extras_require=extras_require,
     zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',

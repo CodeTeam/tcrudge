@@ -19,7 +19,6 @@ Tornado is fast. Peewee is great. REST is wonderful.
 * Tornado (https://github.com/tornadoweb/tornado)
 * Peewee (https://github.com/coleifer/peewee)
 * Peewee-async (https://github.com/05bit/peewee-async)
-* Modified JSON schema generator by [Shalamov Maxim] (https://github.com/mvshalamov) (https://github.com/mvshalamov/GenSON)
 
 # Installation
 tcrudge is distributed via pypi: https://pypi.python.org/pypi/tcrudge/

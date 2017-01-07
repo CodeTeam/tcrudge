@@ -1,5 +1,6 @@
 TCrudge - simple async CRUDL based on Tornado and Peewee ORM (Peewee Async)
 
+[![Documentation Status](https://readthedocs.org/projects/tcrudge/badge/?version=latest)](http://tcrudge.readthedocs.io/en/latest/?badge=latest
 [![Build Status](https://travis-ci.org/CodeTeam/tcrudge.svg?branch=master)](https://travis-ci.org/CodeTeam/tcrudge)
 [![Code Climate](https://codeclimate.com/github/CodeTeam/tcrudge/badges/gpa.svg)](https://codeclimate.com/github/CodeTeam/tcrudge)
 [![Issue Count](https://codeclimate.com/github/CodeTeam/tcrudge/badges/issue_count.svg)](https://codeclimate.com/github/CodeTeam/tcrudge)

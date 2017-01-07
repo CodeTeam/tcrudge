@@ -97,9 +97,6 @@ if sys.argv[-1] == 'publish':
         sys.exit()
     os.system("python setup.py sdist bdist_wheel")
     os.system("twine upload dist/*")
-    print("You probably want to also tag the version now:")
-    print("  git tag -a %s -m 'version %s'" % (version, version))
-    print("  git push --tags")
     shutil.rmtree('dist')
     shutil.rmtree('build')
     shutil.rmtree('tcrudge.egg-info')
@@ -123,7 +120,6 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
-        'Framework :: Tornado',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',

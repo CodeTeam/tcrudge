@@ -356,7 +356,7 @@ class ApiListHandler(ApiHandler):
         }
 
     @property
-    def post_schema_input(self):
+    def post_schema_output(self):
         """
         JSON Schema to validate POST request body. Abstract.
 
@@ -367,7 +367,7 @@ class ApiListHandler(ApiHandler):
         return {}
 
     @property
-    def post_schema_output(self):  # pragma: no cover
+    def post_schema_input(self):  # pragma: no cover
         """
         JSON schema of our model is generated here. Basically it is used for
         Create method - list handler, method POST.

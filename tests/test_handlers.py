@@ -109,6 +109,19 @@ class ApiListTestFKHandler(ApiListHandler):
     model_cls = ApiTestModelFK
 
 
+class ApiListTestFKHandlerCustomSchema(ApiListHandler):
+    model_cls = ApiTestModelFK
+
+    post_schema_input = {
+        'properties': {
+            'tf_foreign_key': {'anyOf': [{'type': 'integer'},
+                                         {'pattern': '^[+-]?[0-9]+$', 'type': 'string'}]
+                              }
+        },
+        'required': ['tf_foreign_key'],
+        'additionalProperties': False, 'type': 'object'
+        }
+
 class ApiListTestHandlerOverriddenOrderby(ApiListHandler):
     model_cls = ApiTestModel
 
@@ -137,6 +150,7 @@ def app_base_handlers(request, app, async_db):
     app.add_handlers(".*$", [(r'^/test/api_test_model/?$', ApiListTestHandler)])
     app.add_handlers(".*$", [(r'^/test/api_test_model/([^/]+)/?$', ApiItemTestHandler)])
     app.add_handlers(".*$", [(r'^/test/api_test_model_fk/?$', ApiListTestFKHandler)])
+    app.add_handlers(".*$", [(r'^/test/api_test_model_fk_custom_schema/?$', ApiListTestFKHandlerCustomSchema)])
     app.add_handlers(".*$", [(r'^/test/api_test_model_fk/([^/]+)/?$', ApiItemTestFKHandler)])
     app.add_handlers(".*$", [(r'^/test/api_test_model_prefetch/?$', ApiListTestHandlerPrefetch)])
     app.add_handlers(".*$", [(r'^/test/api_test_model_dec/?$', DecTestHandler)])
@@ -173,7 +187,6 @@ def test_generate_schema():
     Helper fixture to create test data
     """
     schema = ApiTestModel.to_schema()
-    print(schema)
     assert {
                'properties': {
                    'tf_datetime': {'type': 'string'},
@@ -199,6 +212,17 @@ def test_generate_schema():
                    'tf_text': {'type': 'string'}}, 'required': ['tf_datetime', 'tf_text'],
                'additionalProperties': False, 'type': 'object'
            } == schema1
+
+    schema2 = ApiTestModelFK.to_schema(excluded=['id'])
+    assert {
+        'properties': {
+            'tf_foreign_key': {'anyOf': [{'type': 'integer'},
+                                         {'pattern': '^[+-]?[0-9]+$', 'type': 'string'}]
+                              }
+        },
+        'required': ['tf_foreign_key'],
+        'additionalProperties': False, 'type': 'object'
+        } == schema2
 
 
 @pytest.mark.gen_test
@@ -411,7 +435,25 @@ async def test_base_api_list_bad_fk_invalid_integer(http_client, base_url):
     assert data['result'] is None
     assert not data['success']
     assert len(data['errors']) == 1
-    assert data['errors'][0]['message'] == 'Invalid parameters'
+    assert data['errors'][0]['message'] == 'Validation failed'
+
+
+@pytest.mark.gen_test
+@pytest.mark.usefixtures('app_base_handlers', 'clean_table')
+@pytest.mark.parametrize('clean_table', [(ApiTestModelFK,)], indirect=True)
+async def test_base_api_list_bad_fk_invalid_integer_custom_schema(http_client, base_url):
+    # Create model with invalid FK
+    data = {
+        'tf_foreign_key': ''
+    }
+    with pytest.raises(HTTPError) as e:
+        await http_client.fetch(base_url + '/test/api_test_model_fk_custom_schema/', method='POST', body=json.dumps(data).encode())
+    assert e.value.code == 400
+    data = json.loads(e.value.response.body.decode())
+    assert data['result'] is None
+    assert not data['success']
+    assert len(data['errors']) == 1
+    assert data['errors'][0]['message'] == 'Validation failed'
 
 
 @pytest.mark.gen_test

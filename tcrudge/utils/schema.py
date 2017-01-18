@@ -23,7 +23,7 @@ PEEWEE_TYPES = {
     ],
     'TEXT': 'string',
     'TIMESTAMP': 'string',
-    'DATE': {"type": "string", "pattern": "^[0-3][0-9]-[0-3][0-9]-[0-9]{1,4}$"},
+    'DATE': {"type": "string", "pattern": "^[0-3][0-9].[0-3][0-9].[0-9]{1,4}$"},
     'BOOLEAN': 'boolean',
     'JSONB': 'object',
     'JSON': 'object',

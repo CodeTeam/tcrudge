@@ -33,6 +33,15 @@ TEST_DATA = [
     },
 ]
 
+TEST_INVALID_DATA = [
+    {
+        'tf_text': 'Test field 4',
+        'tf_integer': -10,
+        'tf_datetime': '',
+        'tf_boolean': False,
+    },
+]
+
 
 class ApiTestModel(BaseModel):
     tf_text = peewee.TextField()
@@ -386,6 +395,38 @@ async def test_base_api_list_bad_fk(http_client, base_url):
     assert len(data['errors']) == 1
     assert data['errors'][0]['message'] == 'Invalid parameters'
 
+
+@pytest.mark.gen_test
+@pytest.mark.usefixtures('app_base_handlers', 'clean_table')
+@pytest.mark.parametrize('clean_table', [(ApiTestModelFK,)], indirect=True)
+async def test_base_api_list_bad_fk_invalid_integer(http_client, base_url):
+    # Create model with invalid FK
+    data = {
+        'tf_foreign_key': ''
+    }
+    with pytest.raises(HTTPError) as e:
+        await http_client.fetch(base_url + '/test/api_test_model_fk/', method='POST', body=json.dumps(data).encode())
+    assert e.value.code == 400
+    data = json.loads(e.value.response.body.decode())
+    assert data['result'] is None
+    assert not data['success']
+    assert len(data['errors']) == 1
+    assert data['errors'][0]['message'] == 'Invalid parameters'
+
+
+@pytest.mark.gen_test
+@pytest.mark.usefixtures('clean_table')
+@pytest.mark.parametrize('clean_table', [(ApiTestModel,)], indirect=True)
+async def test_base_api_list_post(http_client, base_url, app_base_handlers):
+    data = TEST_INVALID_DATA[0]
+    resp = await http_client.fetch(base_url + '/test/api_test_model/', method='POST',
+                                   body=json.dumps(data, default=json_serial).encode())
+    assert resp.code == 400
+    data = json.loads(e.value.response.body.decode())
+    assert data['result'] is None
+    assert not data['success']
+    assert len(data['errors']) == 1
+    assert data['errors'][0]['message'] == 'Invalid parameters'
 
 @pytest.mark.gen_test
 @pytest.mark.usefixtures('clean_table')

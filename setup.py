@@ -6,21 +6,12 @@ from io import open
 
 from setuptools import setup
 
-if sys.argv[-1] == 'publish':
+def get_long_description(f):
     try:
         import pypandoc
     except ImportError:
-        print("pypandoc not installed.\nUse `pip install pypandoc`.\nExiting.")
-        sys.exit(1)
-
-def get_long_description(f):
-    """
-    Converts md file to rst text
-    """
-    try:
-        return pypandoc.convert(f, 'rst')
-    except NameError:
         return 'No description'
+    return pypandoc.convert(f, 'rst')
 
 install_requires = [
     'aiopg==0.10.0',
@@ -85,6 +76,11 @@ def get_package_data(package):
 version = get_version('tcrudge')
 
 if sys.argv[-1] == 'publish':
+    try:
+        import pypandoc
+    except ImportError:
+        print("pypandoc not installed.\nUse `pip install pypandoc`.\nExiting.")
+        sys.exit(1)
     pypandoc.download_pandoc()
     if os.system("pip freeze | grep twine"):
         print("twine not installed.\nUse `pip install twine`.\nExiting.")

@@ -6,18 +6,21 @@ from io import open
 
 from setuptools import setup
 
-try:
-    import pypandoc
-except ImportError:
-    print("pypandoc not installed.\nUse `pip install pypandoc`.\nExiting.")
-    sys.exit(1)
+if sys.argv[-1] == 'publish':
+    try:
+        import pypandoc
+    except ImportError:
+        print("pypandoc not installed.\nUse `pip install pypandoc`.\nExiting.")
+        sys.exit(1)
 
-
-def read_md(f):
+def get_long_description(f):
     """
     Converts md file to rst text
     """
-    return pypandoc.convert(f, 'rst')
+    if sys.argv[-1] == 'publish':
+        return pypandoc.convert(f, 'rst')
+    else:
+        return 'No description'
 
 install_requires = [
     'aiopg==0.10.0',
@@ -99,7 +102,7 @@ setup(
     url='https://github.com/CodeTeam/tcrudge',
     license='MIT',
     description='Tornado RESTful API with Peewee',
-    long_description=read_md('readme.md'),
+    long_description=get_long_description('readme.md'),
     author='Code Team',
     author_email='saborisov@sberned.ru',
     packages=get_packages('tcrudge'),

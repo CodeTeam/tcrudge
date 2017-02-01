@@ -17,9 +17,9 @@ def get_long_description(f):
     """
     Converts md file to rst text
     """
-    if sys.argv[-1] == 'publish':
+    try:
         return pypandoc.convert(f, 'rst')
-    else:
+    except NameError:
         return 'No description'
 
 install_requires = [

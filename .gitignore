@@ -40,3 +40,4 @@ tcrudge.egg-info/
 
 # Pypi
 .pypirc
+.pkg

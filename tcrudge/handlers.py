@@ -97,10 +97,9 @@ class BaseHandler(web.RequestHandler):
             self.set_header('Content-Type', 'text/plain')
             for line in traceback.format_exception(*exc_info):
                 self.write(line)
-        else:
-            # exc_info[1] - HTTPError instance
-            # Finish request with exception body or exception reason
-            self.write(getattr(exc_info[1], 'body', self._reason))
+        # exc_info[1] - HTTPError instance
+        # Finish request with exception body or exception reason
+        self.write(getattr(exc_info[1], 'body', self._reason))
         self.finish()
 
     async def validate(self, data, schema, **kwargs):

@@ -117,8 +117,7 @@ class BaseHandler(web.RequestHandler):
             _data = data  # pragma: no cover
         else:
             try:
-                trans = str.maketrans({'<': r'\<', '>': r'\>', '`': r'\`', })
-                _data = json.loads(data.decode().translate(trans))
+                _data = json.loads(data.decode())
             except ValueError as exc:
                 # json.loads error
                 raise HTTPError(
@@ -135,9 +134,12 @@ class BaseHandler(web.RequestHandler):
                 )
         v = validator_for(schema)(schema)
         errors = []
+        trans = str.maketrans({'<': r'\<', '>': r'\>', '`': r'\`', })
         for error in v.iter_errors(_data):
             # error is an instance of jsonschema.exceptions.ValidationError
-            errors.append({'code': '', 'message': 'Validation failed', 'detail': error.message})
+            errors.append({'code': '',
+                           'message': 'Validation failed',
+                           'detail': error.message.translate(trans)})
         if errors:
             # data does not pass validation
             raise HTTPError(400, body=self.get_response(errors=errors))

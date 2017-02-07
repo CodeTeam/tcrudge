@@ -117,8 +117,9 @@ class BaseHandler(web.RequestHandler):
             _data = data  # pragma: no cover
         else:
             try:
-                _data = json.loads(data.decode())
-            except ValueError as e:
+                trans = str.maketrans({'<': r'\<', '>': r'\>', '`': r'\`', })
+                _data = json.loads(data.decode().translate(trans))
+            except ValueError as exc:
                 # json.loads error
                 raise HTTPError(
                     400,
@@ -127,7 +128,7 @@ class BaseHandler(web.RequestHandler):
                             {
                                 'code': '',
                                 'message': 'Request body is not a valid json object',
-                                'detail': str(e)
+                                'detail': str(exc)
                             }
                         ]
                     )

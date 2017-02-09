@@ -386,6 +386,23 @@ async def test_base_api_list_filter_bad_request1(http_client, base_url, url_para
 
 
 @pytest.mark.gen_test
+@pytest.mark.usefixtures('app_base_handlers')
+@pytest.mark.parametrize('url_param', [
+    ('order_by=<some_bad_field>`1`</some_bad_field>',),
+])
+async def test_base_api_list_filter_bad_request1(http_client, base_url, url_param):
+    with pytest.raises(HTTPError) as e:
+        await http_client.fetch(base_url + '/test/api_test_model/?%s' % url_param)
+    assert e.value.code == 400
+    data = json.loads(e.value.response.body.decode())
+    assert data['result'] is None
+    assert not data['success']
+    assert len(data['errors']) == 1
+    assert '&lt;' in data['errors'][0]['detail']
+    assert '&gt;' in data['errors'][0]['detail']
+
+
+@pytest.mark.gen_test
 @pytest.mark.usefixtures('app_base_handlers', 'clean_table')
 @pytest.mark.parametrize('clean_table', [(ApiTestModel,)], indirect=True)
 @pytest.mark.parametrize(['body', 'message'], [(b'', 'Request body is not a valid json object'),
@@ -399,6 +416,7 @@ async def test_base_api_list_bad_request(http_client, base_url, body, message):
     assert data['result'] is None
     assert not data['success']
     for error in data['errors']:
+        print(error)
         assert error['message'] == message
 
 

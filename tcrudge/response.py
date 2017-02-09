@@ -26,7 +26,8 @@ def response_json(handler, response):
     """
 
     handler.set_header('Content-Type', 'application/json')
-    return json.dumps(response, default=json_serial)
+    return json.dumps(response, default=json_serial).replace('<', '&lt;')\
+                                                    .replace('>', '&gt;')
 
 
 def response_msgpack(handler, response):

@@ -99,7 +99,8 @@ class BaseHandler(web.RequestHandler):
                 self.write(line)
         # exc_info[1] - HTTPError instance
         # Finish request with exception body or exception reason
-        self.write(getattr(exc_info[1], 'body', self._reason))
+        err_text = getattr(exc_info[1], 'body', self._reason)
+        self.write(err_text)
         self.finish()
 
     async def validate(self, data, schema, **kwargs):
@@ -134,12 +135,11 @@ class BaseHandler(web.RequestHandler):
                 )
         v = validator_for(schema)(schema)
         errors = []
-        trans = str.maketrans({'<': r'\<', '>': r'\>', '`': r'\`', })
         for error in v.iter_errors(_data):
             # error is an instance of jsonschema.exceptions.ValidationError
             errors.append({'code': '',
                            'message': 'Validation failed',
-                           'detail': error.message.translate(trans)})
+                           'detail': error.message})
         if errors:
             # data does not pass validation
             raise HTTPError(400, body=self.get_response(errors=errors))

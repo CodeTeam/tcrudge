@@ -17,6 +17,7 @@ from jsonschema.validators import validator_for
 from playhouse.shortcuts import model_to_dict
 from tornado import web
 from tornado.gen import multi
+from tornado.escape import xhtml_escape
 
 from tcrudge.exceptions import HTTPError
 from tcrudge.models import FILTER_MAP
@@ -55,7 +56,7 @@ class BaseHandler(web.RequestHandler):
         :rtype: bytes
 
         """
-        _errors = errors or []
+        _errors = [{k: xhtml_escape(v) for k, v in i.items()} for i in errors] if errors else []
         # Set success flag
         success = not _errors
 

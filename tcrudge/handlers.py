@@ -17,6 +17,7 @@ from jsonschema.validators import validator_for
 from playhouse.shortcuts import model_to_dict
 from tornado import web
 from tornado.gen import multi
+from tornado.escape import xhtml_escape
 
 from tcrudge.exceptions import HTTPError
 from tcrudge.models import FILTER_MAP
@@ -55,7 +56,7 @@ class BaseHandler(web.RequestHandler):
         :rtype: bytes
 
         """
-        _errors = errors or []
+        _errors = [{k: xhtml_escape(v) for k, v in i.items()} for i in errors] if errors else []
         # Set success flag
         success = not _errors
 
@@ -99,7 +100,8 @@ class BaseHandler(web.RequestHandler):
                 self.write(line)
         # exc_info[1] - HTTPError instance
         # Finish request with exception body or exception reason
-        self.write(getattr(exc_info[1], 'body', self._reason))
+        err_text = getattr(exc_info[1], 'body', self._reason)
+        self.write(err_text)
         self.finish()
 
     async def validate(self, data, schema, **kwargs):
@@ -118,7 +120,7 @@ class BaseHandler(web.RequestHandler):
         else:
             try:
                 _data = json.loads(data.decode())
-            except ValueError as e:
+            except ValueError as exc:
                 # json.loads error
                 raise HTTPError(
                     400,
@@ -127,7 +129,7 @@ class BaseHandler(web.RequestHandler):
                             {
                                 'code': '',
                                 'message': 'Request body is not a valid json object',
-                                'detail': str(e)
+                                'detail': str(exc)
                             }
                         ]
                     )
@@ -136,7 +138,9 @@ class BaseHandler(web.RequestHandler):
         errors = []
         for error in v.iter_errors(_data):
             # error is an instance of jsonschema.exceptions.ValidationError
-            errors.append({'code': '', 'message': 'Validation failed', 'detail': error.message})
+            errors.append({'code': '',
+                           'message': 'Validation failed',
+                           'detail': error.message})
         if errors:
             # data does not pass validation
             raise HTTPError(400, body=self.get_response(errors=errors))

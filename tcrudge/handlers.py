@@ -514,6 +514,9 @@ class ApiListHandler(ApiHandler):
                 qs = qs.order_by(fld, extend=True)
         return qs
 
+    def get_base_queryset(self):
+        return self.model_cls.select()
+
     def get_queryset(self, paginate=True):
         """
         Get queryset for model.
@@ -523,7 +526,7 @@ class ApiListHandler(ApiHandler):
         All arguments for WHERE clause are passed with AND condition.
         """
         # Set limit / offset parameters
-        qs = self.model_cls.select()
+        qs = self.get_base_queryset()
         if paginate:
             qs = qs.limit(self.limit).offset(self.offset)
 
@@ -777,6 +780,12 @@ class ApiItemHandler(ApiHandler):
         """
         return {}
 
+    def get_base_queryset(self):
+        return self.model_cls.select()
+
+    def get_queryset(self, item_id):
+        return self.get_base_queryset().where(self.model_cls._meta.primary_key == item_id)
+
     async def get_item(self, item_id):
         """
         Fetches item from database by PK.
@@ -788,8 +797,7 @@ class ApiItemHandler(ApiHandler):
         """
         if not self._instance:
             try:
-                self._instance = await self.application.objects.get(self.model_cls,
-                                                                    **{self.model_cls._meta.primary_key.name: item_id})
+                self._instance = await self.application.objects.get(self.get_queryset(item_id))
             except (self.model_cls.DoesNotExist, ValueError) as e:
                 raise HTTPError(
                     404,

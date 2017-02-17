@@ -240,6 +240,9 @@ class ApiHandler(BaseHandler, metaclass=ABCMeta):
                              exclude=self.exclude_fields,
                              max_depth=self.max_depth)
 
+    def get_base_queryset(self):
+        return self.model_cls.select()
+
 
 class ApiListHandler(ApiHandler):
     """
@@ -514,9 +517,6 @@ class ApiListHandler(ApiHandler):
                 qs = qs.order_by(fld, extend=True)
         return qs
 
-    def get_base_queryset(self):
-        return self.model_cls.select()
-
     def get_queryset(self, paginate=True):
         """
         Get queryset for model.
@@ -779,9 +779,6 @@ class ApiItemHandler(ApiHandler):
         :rtype: dict
         """
         return {}
-
-    def get_base_queryset(self):
-        return self.model_cls.select()
 
     def get_queryset(self, item_id):
         return self.get_base_queryset().where(self.model_cls._meta.primary_key == item_id)

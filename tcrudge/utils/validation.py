@@ -37,3 +37,32 @@ def validate_integer(val, min_value=None, max_value=None, default=None):
     if max_value is not None and result > max_value:
         result = max_value
     return result
+
+
+def prepare(handler):
+    """
+    Works for GET requests only
+ 
+    Validates the request's GET method to define 
+    if there are X-Limit and X-Offset headers to 
+    extract them and concat with handler directly
+    """
+    # Headers are more significant when taking limit and offset
+    if handler.request.method == 'GET':
+        # No more than MAX_LIMIT records at once
+        # Not less than 1 record at once
+        limit = handler.request.headers.get('X-Limit',
+                                         handler.get_query_argument('limit',
+                                                                    handler.default_limit))
+        handler.limit = validate_integer(limit, 1, handler.max_limit,
+                                         handler.default_limit)
+
+        # Offset should be a non negative integer
+        offset = handler.request.headers.get('X-Offset',
+                                          handler.get_query_argument('offset',
+                                                                     0))
+        handler.offset = validate_integer(offset, 0, None, 0)
+
+        # Force send total amount of items
+        handler.total = 'X-Total' in handler.request.headers or \
+                     handler.get_query_argument('total', None) == '1'

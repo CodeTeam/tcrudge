@@ -22,7 +22,7 @@ from tornado.escape import xhtml_escape
 from tcrudge.exceptions import HTTPError
 from tcrudge.models import FILTER_MAP
 from tcrudge.response import response_json, response_msgpack
-from tcrudge.utils.validation import validate_integer
+from tcrudge.utils.validation import prepare
 
 
 class BaseHandler(web.RequestHandler):
@@ -411,26 +411,8 @@ class ApiListHandler(ApiHandler):
 
         Works for GET method only.
         """
-        # Headers are more significant when taking limit and offset
         if self.request.method == 'GET':
-            # No more than MAX_LIMIT records at once
-            # Not less than 1 record at once
-            limit = self.request.headers.get('X-Limit',
-                                             self.get_query_argument('limit',
-                                                                     self.default_limit))
-            self.limit = validate_integer(limit, 1, self.max_limit,
-                                          self.default_limit)
-
-            # Offset should be a non negative integer
-            offset = self.request.headers.get('X-Offset',
-                                              self.get_query_argument('offset',
-                                                                      0))
-            self.offset = validate_integer(offset, 0, None, 0)
-
-            # Force send total amount of items
-            self.total = 'X-Total' in self.request.headers or \
-                         self.get_query_argument(
-                             'total', None) == '1'
+            prepare(self)
 
     @classmethod
     def qs_filter(cls, qs, flt, value, process_value=True):

@@ -43,6 +43,12 @@ class BaseHandler(web.RequestHandler):
         'application/x-msgpack': response_msgpack,
     }
 
+    def get_query_argument(self, name, default= object(), strip=True):
+        val = super().get_query_argument(name, default, strip)
+        if isinstance(val, str):
+            return xhtml_escape(val)
+        return val
+    
     def get_response(self, result=None, errors=None, **kwargs):
         """
         Method returns conventional formatted byte answer.
@@ -138,9 +144,10 @@ class BaseHandler(web.RequestHandler):
         errors = []
         for error in v.iter_errors(_data):
             # error is an instance of jsonschema.exceptions.ValidationError
+            err_msg = xhtml_escape(error.message)
             errors.append({'code': '',
                            'message': 'Validation failed',
-                           'detail': error.message})
+                           'detail': err_msg})
         if errors:
             # data does not pass validation
             raise HTTPError(400, body=self.get_response(errors=errors))

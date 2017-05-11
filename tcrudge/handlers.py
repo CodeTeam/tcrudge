@@ -609,7 +609,7 @@ class ApiListHandler(ApiHandler):
                         {
                             'code': '',
                             'message': 'Bad query arguments',
-                            'detail': str(e)
+                            'detail': xhtml_escape(str(e))
                         }
                     ]
                 )
@@ -668,6 +668,7 @@ class ApiListHandler(ApiHandler):
             item = await self.model_cls._create(self.application, data)
         except AttributeError as e:
             # We can only create item if _create() model method implemented
+            err = xhtml_escape(str(e))
             raise HTTPError(
                 405,
                 body=self.get_response(
@@ -675,7 +676,7 @@ class ApiListHandler(ApiHandler):
                         {
                             'code': '',
                             'message': 'Method not allowed',
-                            'detail': str(e)
+                            'detail': err
                         }
                     ]
                 )
@@ -785,7 +786,7 @@ class ApiItemHandler(ApiHandler):
                             {
                                 'code': '',
                                 'message': 'Item not found',
-                                'detail': str(e)
+                                'detail': xhtml_escape(str(e))
                             }
                         ]
                     )
@@ -834,7 +835,7 @@ class ApiItemHandler(ApiHandler):
                         {
                             'code': '',
                             'message': 'Method not allowed',
-                            'detail': str(e)
+                            'detail': xhtml_escape(str(e))
                         }
                     ]
                 )

@@ -9,17 +9,12 @@ def xhtml_escape_complex_object(obj):
 
 
 @xhtml_escape_complex_object.register(str)
-def xhtml_escape_str(obj):
+def __xhtml_escape_str(obj):
     return xhtml_escape(obj)
 
 
-@xhtml_escape_complex_object.register(type(None))
-def xhtml_escape_none(obj):
-    return obj
-
-
 @xhtml_escape_complex_object.register(dict)
-def xhtml_escape_object_dict(obj):
+def __xhtml_escape_object_dict(obj):
     escaped_dict = {}
     for k, v in obj.items():
         escaped_dict[k] = xhtml_escape_complex_object(v)
@@ -28,6 +23,6 @@ def xhtml_escape_object_dict(obj):
 
 @xhtml_escape_complex_object.register(list)
 @xhtml_escape_complex_object.register(tuple)
-def xhtml_escape_list(obj):
+def __xhtml_escape_list(obj):
     escaped_list = tuple(xhtml_escape_complex_object(i) for i in obj)
     return escaped_list

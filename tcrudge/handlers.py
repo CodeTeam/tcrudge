@@ -23,6 +23,7 @@ from tcrudge.exceptions import HTTPError
 from tcrudge.models import FILTER_MAP
 from tcrudge.response import response_json, response_msgpack
 from tcrudge.utils.validation import prepare
+from tcrudge.utils.xhtml_escape import xhtml_escape_complex_object
 
 
 class BaseHandler(web.RequestHandler):
@@ -62,7 +63,7 @@ class BaseHandler(web.RequestHandler):
         :rtype: bytes
 
         """
-        _errors = [{k: xhtml_escape(v) for k, v in i.items()} for i in errors] if errors else []
+        _errors = xhtml_escape_complex_object(errors) if errors else []
         # Set success flag
         success = not _errors
 

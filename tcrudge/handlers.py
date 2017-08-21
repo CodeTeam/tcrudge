@@ -111,7 +111,7 @@ class BaseHandler(web.RequestHandler):
         self.write(err_text)
         self.finish()
 
-    async def validate(self, data, schema, **kwargs):
+    async def validate(self, data, schema, format_checker=None, **kwargs):
         """
         Method to validate parameters.
         Raises HTTPError(400) with error info for invalid data.
@@ -141,7 +141,7 @@ class BaseHandler(web.RequestHandler):
                         ]
                     )
                 )
-        v = validator_for(schema)(schema, **kwargs)
+        v = validator_for(schema)(schema, format_checker=format_checker)
         errors = []
         for error in v.iter_errors(_data):
             # error is an instance of jsonschema.exceptions.ValidationError

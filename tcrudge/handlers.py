@@ -141,7 +141,7 @@ class BaseHandler(web.RequestHandler):
                         ]
                     )
                 )
-        v = validator_for(schema)(schema)
+        v = validator_for(schema)(schema, **kwargs)
         errors = []
         for error in v.iter_errors(_data):
             # error is an instance of jsonschema.exceptions.ValidationError

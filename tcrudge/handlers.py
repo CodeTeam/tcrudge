@@ -43,6 +43,7 @@ class BaseHandler(web.RequestHandler):
         'application/json': response_json,
         'application/x-msgpack': response_msgpack,
     }
+    default_callback = response_json
 
     def get_query_argument(self, name, default= object(), strip=True):
         val = super().get_query_argument(name, default, strip)
@@ -75,7 +76,7 @@ class BaseHandler(web.RequestHandler):
 
         accept = self.request.headers.get('Accept', 'application/json')
         # Get callback
-        callback = self.response_callbacks.get(accept, response_json)
+        callback = self.response_callbacks.get(accept, self.default_callback)
         return callback(self, {**answer, **kwargs})
 
     def response(self, result=None, errors=None, **kwargs):

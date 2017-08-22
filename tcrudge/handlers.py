@@ -43,7 +43,7 @@ class BaseHandler(web.RequestHandler):
         'application/json': response_json,
         'application/x-msgpack': response_msgpack,
     }
-    default_callback = response_json
+    default_callback = staticmethod(response_json)
 
     def get_query_argument(self, name, default= object(), strip=True):
         val = super().get_query_argument(name, default, strip)

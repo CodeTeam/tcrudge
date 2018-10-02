@@ -6,6 +6,7 @@ from io import open
 
 from setuptools import setup
 
+
 def get_long_description(f):
     try:
         import pypandoc
@@ -13,23 +14,22 @@ def get_long_description(f):
         return 'No description'
     return pypandoc.convert(f, 'rst')
 
+
 install_requires = [
-    'aiopg==0.10.0',
-    'peewee==2.8.3',
-    'peewee-async==0.5.5',
-    'psycopg2==2.6.2',
-    'tornado==4.4.2',
-    'jsonschema==2.5.1',
-    'msgpack-python==0.4.8',
+    'peewee>=2.8.3',
+    'peewee-async>=0.5.5',
+    'tornado>=4.4.2',
+    'jsonschema>=2.5.1',
+    'msgpack-python>=0.4.8',
 ]
 
 extras_require = {'tests': [
-    'py==1.4.31',
-    'pytest==3.0.2',
-    'pytest-cov==2.3.1',
-    'pytest-env==0.6.0',
-    'pytest-tornado==0.4.5',
-    'coverage==4.2'
+    'py>=1.4.31',
+    'pytest>=3.0.2',
+    'pytest-cov>=2.3.1',
+    'pytest-env>=0.6.0',
+    'pytest-tornado>=0.4.5',
+    'coverage>=4.2'
 ], }
 
 

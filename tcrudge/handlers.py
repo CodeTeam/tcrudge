@@ -23,6 +23,7 @@ from tcrudge.exceptions import HTTPError
 from tcrudge.models import FILTER_MAP
 from tcrudge.response import response_json, response_msgpack
 from tcrudge.utils.validation import prepare
+from tcrudge.utils.xhtml_escape import xhtml_escape_complex_object
 
 
 class BaseHandler(web.RequestHandler):
@@ -42,6 +43,7 @@ class BaseHandler(web.RequestHandler):
         'application/json': response_json,
         'application/x-msgpack': response_msgpack,
     }
+    default_callback = staticmethod(response_json)
 
     def get_query_argument(self, name, default= object(), strip=True):
         val = super().get_query_argument(name, default, strip)
@@ -62,7 +64,7 @@ class BaseHandler(web.RequestHandler):
         :rtype: bytes
 
         """
-        _errors = [{k: xhtml_escape(v) for k, v in i.items()} for i in errors] if errors else []
+        _errors = xhtml_escape_complex_object(errors) if errors else []
         # Set success flag
         success = not _errors
 
@@ -74,7 +76,7 @@ class BaseHandler(web.RequestHandler):
 
         accept = self.request.headers.get('Accept', 'application/json')
         # Get callback
-        callback = self.response_callbacks.get(accept, response_json)
+        callback = self.response_callbacks.get(accept, self.default_callback)
         return callback(self, {**answer, **kwargs})
 
     def response(self, result=None, errors=None, **kwargs):
@@ -110,7 +112,7 @@ class BaseHandler(web.RequestHandler):
         self.write(err_text)
         self.finish()
 
-    async def validate(self, data, schema, **kwargs):
+    async def validate(self, data, schema, format_checker=None, **kwargs):
         """
         Method to validate parameters.
         Raises HTTPError(400) with error info for invalid data.
@@ -140,7 +142,7 @@ class BaseHandler(web.RequestHandler):
                         ]
                     )
                 )
-        v = validator_for(schema)(schema)
+        v = validator_for(schema)(schema, format_checker=format_checker)
         errors = []
         for error in v.iter_errors(_data):
             # error is an instance of jsonschema.exceptions.ValidationError

@@ -398,8 +398,8 @@ async def test_base_api_list_filter_bad_request1(http_client, base_url, url_para
     assert data['result'] is None
     assert not data['success']
     assert len(data['errors']) == 1
-    assert '&lt;' in data['errors'][0]['detail']
-    assert '&gt;' in data['errors'][0]['detail']
+    assert 'lt;' in data['errors'][0]['detail']
+    assert 'gt;' in data['errors'][0]['detail']
 
 
 @pytest.mark.gen_test

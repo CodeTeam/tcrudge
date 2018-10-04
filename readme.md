@@ -42,7 +42,7 @@ You'll need docker and docker-compose.
 1. Go to project root directory
 2. Run docker-compose up, it builts and runs containers.
 3. Go to tcrudge container bash: docker exec -ti tcrudge_tcrudge_1 bash
-4. Run: DATABASE_URL=postgresql://user:dbpass@pg/test pytest
+4. Run: pytest
 
 # Features?
 
@@ -127,3 +127,4 @@ loop.run_forever()
 * [Nikolaev Alexander] (https://github.com/wokli)
 * [Krasavina Alina] (https://github.com/thaelathy)
 * [Ivanov Denis] (https://github.com/steinerr)
+* [Andrey Sviridov] (https://github.com/isgondurasa)

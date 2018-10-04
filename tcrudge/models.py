@@ -59,7 +59,7 @@ class BaseModel(peewee.Model):
             if field not in excluded:
                 schema.add_object(
                         {
-                            field: type_field.get_column_type()
+                            field: type_field.field_type
                         }
                 )
                 if not type_field.null:

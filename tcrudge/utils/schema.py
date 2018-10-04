@@ -17,7 +17,7 @@ JS_TYPES = {
 }
 
 PEEWEE_TYPES = {
-    'SERIAL': [
+    'AUTO': [
         {"type": "integer"},
         {"type": "string", "pattern": "^[+-]?[0-9]+$"},
     ],
@@ -27,11 +27,11 @@ PEEWEE_TYPES = {
     'BOOLEAN': 'boolean',
     'JSONB': 'object',
     'JSON': 'object',
-    'INTEGER': [
+    'INT': [
         {"type": "integer"},
         {"type": "string", "pattern": "^[+-]?[0-9]+$"}
     ],
-    'REAL': [
+    'FLOAT': [
         {"type": "number"},
         {"type": "string", "pattern": "^[+-]?([0-9]*[.])?[0-9]+$"}
     ],

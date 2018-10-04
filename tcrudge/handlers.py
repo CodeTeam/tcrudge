@@ -501,11 +501,11 @@ class ApiListHandler(ApiHandler):
             if ordr[0] == '-':
                 # DESC order
                 fld = getattr(cls.model_cls, ordr[1:])
-                qs = qs.order_by(fld.desc(), extend=True)
+                qs = qs.order_by(fld.desc())
             else:
                 # ASC order
                 fld = getattr(cls.model_cls, ordr)
-                qs = qs.order_by(fld, extend=True)
+                qs = qs.order_by(fld)
         return qs
 
     def get_queryset(self, paginate=True):

@@ -59,7 +59,7 @@ class ApiTestModel(BaseModel):
 
 
 class ApiTestModelFK(BaseModel):
-    tf_foreign_key = peewee.ForeignKeyField(ApiTestModel, related_name='rel_items')
+    tf_foreign_key = peewee.ForeignKeyField(ApiTestModel, backref='rel_items')
 
     class Meta:
         database = db
@@ -89,7 +89,7 @@ class ApiListTestHandlerPrefetch(ApiListHandler):
     async def serialize(self, m):
         result = await super(ApiListTestHandlerPrefetch, self).serialize(m)
         result['rel_items'] = []
-        for prefetched_item in m.rel_items_prefetch:
+        for prefetched_item in m.rel_items:
             result['rel_items'].append(model_to_dict(prefetched_item, recurse=False))
         return result
 
@@ -280,10 +280,7 @@ async def test_base_api_list_head(http_client, base_url):
                                                 ('tf_boolean=0', 1),
                                                 ])
 async def test_base_api_list_filter(http_client, base_url, url_param, cnt, monkeypatch):
-    monkeypatch.setattr(ApiListTestHandler, 'get_schema_input',
-                        {
-
-                        })
+    monkeypatch.setattr(ApiListTestHandler, 'get_schema_input', {})
     res = await http_client.fetch(base_url + '/test/api_test_model/?%s' % url_param)
 
     assert res.code == 200

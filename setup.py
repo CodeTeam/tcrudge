@@ -16,8 +16,9 @@ def get_long_description(f):
 
 
 install_requires = [
-    'peewee>=2.8.3',
-    'peewee-async>=0.5.5',
+    'aiopg==0.15.0'
+    'peewee==3.7.0',
+    'peewee-async>=0.6.0a',
     'tornado>=4.4.2',
     'jsonschema>=2.5.1',
     'msgpack-python>=0.4.8',

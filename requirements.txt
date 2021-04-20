@@ -8,7 +8,7 @@ jsonschema==2.5.1
 msgpack-python==0.4.8
 
 # Development & Testing
-py==1.4.31
+py==1.10.0
 pytest==3.0.2
 pytest-cov==2.3.1
 pytest-env==0.6.0

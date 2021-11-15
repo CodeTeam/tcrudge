@@ -218,10 +218,10 @@ class Schema(object):  # pragma: no cover
         if not recurse:
             return dict(self._properties)
 
-        properties = {}
-        for prop, subschema in self._properties.items():
-            properties[prop] = subschema.to_dict()
-        return properties
+        return {
+            prop: subschema.to_dict()
+            for prop, subschema in self._properties.items()
+        }
 
     def _get_items(self, recurse=True):
         if not recurse:
@@ -294,8 +294,5 @@ class Schema(object):  # pragma: no cover
         self._add_items(array, 'add_object')
 
     def _generate_basic(self, val):
-        if val in JS_TYPES.keys():
-            val_type = JS_TYPES[val]
-        else:
-            val_type = JS_TYPES[type(val)]
+        val_type = JS_TYPES[val] if val in JS_TYPES.keys() else JS_TYPES[type(val)]
         self._add_type(val_type)

@@ -568,12 +568,11 @@ class ApiListHandler(ApiHandler):
                 items, total = await multi(awaitables)
                 # Set total items number
                 pagination['total'] = total
+            elif self.prefetch_queries:
+                items = await self.application.objects.prefetch(qs,
+                                                                *self.prefetch_queries)                    
             else:
-                if self.prefetch_queries:
-                    items = await self.application.objects.prefetch(qs,
-                                                                    *self.prefetch_queries)
-                else:
-                    items = await self.application.objects.execute(qs)
+                items = await self.application.objects.execute(qs)
         except (peewee.DataError, ValueError) as e:
             # Bad parameters
             raise HTTPError(

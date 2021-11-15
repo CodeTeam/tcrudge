@@ -13,11 +13,7 @@ def perm_roles(items):
             auth = await self.is_auth()
             if auth:
                 roles = await self.get_roles()
-                valid_permission = False
-                for r in roles:
-                    if r in items:
-                        valid_permission = True
-                        break
+                valid_permission = any(r in items for r in roles)
                 if not valid_permission:
                     await self.bad_permissions()
                 return await f(self, *args, **kw)
